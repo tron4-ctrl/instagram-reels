@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Instagram Reels Library — 3,646 Reels</title>
+<title>TROY</title>
 <style>
 :root{
   --bg:#0a0b0f; --bg2:#0d0f15;
@@ -39,8 +39,17 @@ header.header-compact .stat .num{font-size:1rem;}
 header.header-hidden{opacity:0;transform:translateY(calc(-100% - 12px));pointer-events:none;}
 .header-inner{max-width:1400px;margin:0 auto;padding:14px 24px 12px;}
 .title-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
-.title-row h1{margin:0;font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;
-  background:linear-gradient(90deg,#fff,#c9c3ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.title-row h1{
+  margin:0;
+  font-size:1.5rem;
+  font-weight:850;
+  letter-spacing:-0.025em;
+  background:linear-gradient(90deg,#f7e7b2 0%,#fff8df 45%,#d8b86a 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 2px 18px rgba(216,184,106,.16);
+}
 .title-row .tag{font-size:0.72rem;color:var(--muted2);border:1px solid var(--border);padding:3px 9px;border-radius:20px;}
 .subtitle{color:var(--muted);font-size:0.86rem;margin-bottom:16px;}
 
@@ -165,7 +174,68 @@ header .header-inner{padding-bottom:11px;}
 .pill{height:36px;padding:0 13px;}
 .btn-clear{height:42px;white-space:nowrap;}
 @media(max-width:900px){.primary-controls{grid-template-columns:1fr 1fr;}.search-field{grid-column:1/-1;}.btn-clear{width:100%;}}
-@media(max-width:640px){.title-row{align-items:flex-start;}.total-badge{padding:7px 10px;}.total-label{display:none;}.primary-controls{grid-template-columns:1fr;}.search-field{grid-column:auto;}.pillbar{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:thin;}}
+@media(max-width:640px){
+  .header-inner{
+    padding:8px 10px 8px;
+  }
+
+  .title-row{
+    align-items:center;
+    gap:8px;
+    margin-bottom:7px;
+  }
+
+  .title-row h1{
+    font-size:1.12rem;
+  }
+
+  .subtitle{
+    display:none;
+  }
+
+  .total-badge{
+    min-height:32px !important;
+    padding:6px 10px !important;
+    border-radius:10px !important;
+  }
+
+  .total-num{
+    font-size:.76rem !important;
+  }
+
+  .primary-controls{
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+
+  .search-field{
+    grid-column:1/-1;
+  }
+
+  .primary-controls input,
+  .primary-controls select{
+    height:36px;
+    padding:7px 10px;
+    font-size:.78rem;
+  }
+
+  .btn-clear{
+    width:100%;
+    height:36px;
+    padding:7px 8px;
+    font-size:.76rem;
+  }
+
+  .meta-row{
+    padding:0;
+    min-height:0;
+  }
+
+  header.header-compact .header-inner{
+    padding-top:6px;
+    padding-bottom:6px;
+  }
+}
 </style><style id="status-pill-removal">
 /* Cover-status pills are intentionally not part of the visible header UI. */
 #pillbar,.pillbar{display:none!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
@@ -196,8 +266,15 @@ header .header-inner{padding-bottom:11px;}
 #resultCount{display:none!important;}
 .meta-row{min-height:0!important;padding-top:6px!important;}
 @media(max-width:640px){
-  .total-badge{min-height:38px!important;padding:8px 14px!important;border-radius:12px!important;}
-  .total-num{font-size:.86rem!important;}
+  .total-badge{
+    min-height:32px!important;
+    padding:6px 10px!important;
+    border-radius:10px!important;
+  }
+
+  .total-num{
+    font-size:.76rem!important;
+  }
 }
 </style><style id="header-state-overrides">
 #libraryHeader.header-hidden{opacity:0!important;transform:translateY(-105%)!important;pointer-events:none!important;}
@@ -214,7 +291,7 @@ header .header-inner{padding-bottom:11px;}
   <div class="header-inner">
     <div class="title-row">
       <div class="brand-copy">
-        <h1>Reels Library</h1>
+        <h1>TROY</h1>
         <div class="subtitle">A curated, searchable archive of your saved Instagram Reels.</div>
       </div>
       <div class="total-badge" aria-label="3,646 Reels in library" role="status">
@@ -266,7 +343,7 @@ header .header-inner{padding-bottom:11px;}
   </div>
 </main>
 
-<footer>Instagram Reels Library &middot; Built for offline use</footer>
+<footer>TROY · Your Personal Reel Library</footer>
 
 <button id="backtop" title="Back to top" aria-label="Back to top">&#8593;</button>
 
