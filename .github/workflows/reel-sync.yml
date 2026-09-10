@@ -1,8 +1,6 @@
 name: Instagram Reel Auto Sync
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       url:
@@ -63,15 +61,6 @@ jobs:
           while IFS= read -r url; do
             python automation/sync_reels.py "$url"
           done < /tmp/reel_urls.txt
-
-      - name: Poll Telegram (optional)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_ALLOWED_CHAT_ID: ${{ secrets.TELEGRAM_ALLOWED_CHAT_ID }}
-          INSTAGRAM_COOKIES: ${{ secrets.INSTAGRAM_COOKIES }}
-          INSTAGRAM_COOKIES_B64: ${{ secrets.INSTAGRAM_COOKIES_B64 }}
-        run: python automation/poll_telegram.py
 
       - name: Full integrity validation
         run: python automation/validate_library.py
