@@ -98,7 +98,7 @@ HINTS: dict[str, list[str]] = {
     "Python Programming": ["python", "pandas", "numpy", "flask", "django"],
     "Web Development": ["html", "css", "javascript", "react", "frontend", "webdevelopment", "webdeveloper", "nextjs", "nodejs"],
     "DevOps / Software Engineering": ["devops", "docker", "kubernetes", "cicd", "microservices", "backend", "softwareengineering", "awsdevops"],
-    "AI Tools & Generative AI": ["chatgpt", "gpt", "openai", "generativeai", "genai", "prompt", "prompts", "promptengineering", "claude", "gemini", "llm", "artificialintelligence", "midjourney", "copilot"],
+    "AI Tools & Generative AI": ["chatgpt", "openai", "generativeai", "genai", "promptengineering", "claude", "gemini", "llm", "artificialintelligence", "midjourney", "copilot"],
     "Cybersecurity": ["cybersecurity", "infosec", "ethicalhacking", "penetrationtesting", "bugbounty", "phishing", "malware", "cybersecurityawareness"],
     "Software Testing & QA": ["softwaretesting", "testing", "selenium", "qaautomation", "junit", "testautomation", "qualityassurance"],
     "Networking / IT Infrastructure": ["networking", "ccna", "cisco", "router", "switch", "tcpip", "dns", "linuxserver"],
@@ -279,87 +279,81 @@ def fetch_cover_via_ytdlp(item: dict) -> tuple[bytes, str]:
 
     return data, hashlib.sha256(data).hexdigest()
 
-GENERIC_TITLE_PATTERNS = (
-    re.compile(r"^video\s+by\s+.+$", re.I),
-    re.compile(r"^reel\s+by\s+.+$", re.I),
-    re.compile(r"^post\s+by\s+.+$", re.I),
-    re.compile(r"^instagram\s+reel(?:\s+by\s+.+)?$", re.I),
-    re.compile(r"\bon\s+instagram\s*:", re.I),
-    re.compile(r"^video$|^reel$|^instagram$", re.I),
-)
-
-CTA_PREFIXES = (
-    "follow for",
-    "follow me",
-    "comment ",
-    "dm me",
-    "dm ",
-    "link in bio",
-    "save this",
-    "share this",
-    "tag ",
-    "subscribe",
-)
-
-
-def _is_generic_title(title: str) -> bool:
-    candidate = re.sub(r"\s+", " ", str(title or "").strip())
-    if not candidate:
+def _is_generic_instagram_title(title: str, author: str = "") -> bool:
+    """Return True for generic Instagram placeholder titles."""
+    t = " ".join(str(title or "").split()).strip()
+    if not t:
         return True
-    return any(p.search(candidate) for p in GENERIC_TITLE_PATTERNS)
+
+    generic_patterns = (
+        r"^video\s+by\s+.+$",
+        r"^reel\s+by\s+.+$",
+        r"^instagram\s+reel(?:\s+by\s+.+)?$",
+        r"^video(?:\s+reel)?\s+by\s+.+$",
+        r"^reels?$",
+    )
+    if any(re.fullmatch(p, t, flags=re.I) for p in generic_patterns):
+        return True
+
+    if author:
+        a = re.sub(r"^@", "", str(author).strip())
+        nt = re.sub(r"[^a-z0-9]+", "", t.lower())
+        na = re.sub(r"[^a-z0-9]+", "", a.lower())
+        if na and nt in {f"videoby{na}", f"reelby{na}"}:
+            return True
+
+    return False
 
 
-def _clean_title_candidate(text: str) -> str:
-    text = re.sub(r"https?://\S+", " ", str(text or ""))
-    text = re.sub(r"(?<!\w)#[\w-]+", " ", text)
-    text = re.sub(r"\s+", " ", text).strip(" -–—|•·")
-    return text.strip()
-
-
-def _derive_display_title(description: str, shortcode: str) -> str:
+def _derive_display_title(title: str, description: str, author: str = "") -> str:
     """
-    Derive a concise display title from caption/context only when the source
-    title is generic. The stored description/caption is never modified.
+    Keep a meaningful supplied title. When Instagram supplies a generic
+    placeholder such as 'Video by username', derive a concise title from
+    the actual caption/context without changing the stored caption.
     """
-    desc = str(description or "").replace("\r", "\n").strip()
-    if not desc:
-        return f"Instagram Reel {shortcode}"
+    supplied = " ".join(str(title or "").split()).strip()
+    if supplied and not _is_generic_instagram_title(supplied, author):
+        return supplied[:1000]
 
-    chunks = [c.strip() for c in re.split(r"\n+|\|+", desc) if c.strip()]
-    candidates: list[str] = []
+    candidates = []
+    text = str(description or "").replace("\r", "\n")
 
-    for chunk in chunks:
-        cleaned = _clean_title_candidate(chunk)
-        if not cleaned:
+    for raw in re.split(r"\n+|\s*\|\s*", text):
+        s = " ".join(raw.split()).strip(" -\t")
+        if not s:
             continue
 
-        lowered = cleaned.lower()
-        if any(lowered.startswith(prefix) for prefix in CTA_PREFIXES):
+        clean = re.sub(r"https?://\S+", "", s)
+        clean = re.sub(r"(?:^|\s)#[A-Za-z0-9_]+", " ", clean)
+        clean = " ".join(clean.split()).strip()
+        low = clean.lower()
+
+        if not clean:
+            continue
+        if low.startswith((
+            "follow for", "comment ", "dm me", "link in bio",
+            "save this", "like and share", "subscribe"
+        )):
+            continue
+        if re.match(r"^(?:[\d,.]+\s+likes?|[\d,.]+\s+comments?)\b", low):
             continue
 
-        if len(re.findall(r"\b[\w’'-]+\b", cleaned)) < 3:
-            continue
-
-        candidates.append(cleaned)
+        candidates.append(clean)
 
     if not candidates:
-        return f"Instagram Reel {shortcode}"
+        return supplied[:1000] if supplied else "Instagram Reel"
 
     candidate = candidates[0]
 
-    # Prefer a complete opening sentence/question when available.
-    sentence_match = re.match(r"^(.{12,160}?[.!?])(?:\s|$)", candidate)
-    if sentence_match:
-        candidate = sentence_match.group(1).strip()
+    m = re.search(r"^(.{1,180}?[.!?])(?:\s|$)", candidate)
+    if m:
+        candidate = m.group(1).strip()
 
-    if len(candidate) > 120:
-        candidate = (
-            re.sub(r"\s+", " ", candidate[:121])
-            .rsplit(" ", 1)[0]
-            .rstrip(".,;:!?-")
-        )
+    candidate = candidate.strip(" \"'")
+    if len(candidate) > 160:
+        candidate = candidate[:157].rsplit(" ", 1)[0].rstrip(" ,;:-") + "..."
 
-    return candidate or f"Instagram Reel {shortcode}"
+    return candidate or (supplied[:1000] if supplied else "Instagram Reel")
 
 
 def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]:
@@ -367,13 +361,7 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
     if not sc:
         raise RuntimeError("invalid Instagram Reel URL")
 
-    raw_title = (
-        item.get("title")
-        or item.get("fulltitle")
-        or item.get("raw_title")
-        or item.get("og:title")
-        or ""
-    )
+    supplied_title = item.get("title") or item.get("fulltitle") or item.get("raw_title") or ""
     desc = item.get("description") or item.get("caption") or item.get("text") or ""
     author = (
         item.get("uploader")
@@ -382,9 +370,10 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
         or item.get("username")
         or ""
     )
+    title = _derive_display_title(supplied_title, desc, author)
+
     upload = item.get("upload_date") or item.get("timestamp") or ""
     dt = ""
-
     if isinstance(upload, (int, float)):
         dt = datetime.fromtimestamp(upload, timezone.utc).date().isoformat()
     else:
@@ -394,19 +383,10 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
         elif re.match(r"\d{4}-\d{2}-\d{2}", s):
             dt = s[:10]
 
-    source_title = str(raw_title).strip()
-    title_is_generic = _is_generic_title(source_title)
-
-    display_title = (
-        _derive_display_title(str(desc), sc)
-        if title_is_generic
-        else source_title[:1000]
-    )
-
     rec = {
         "sc": sc,
         "u": canonical_url(sc),
-        "t": display_title[:1000],
+        "t": str(title)[:1000] or (str(desc).split("|")[0].strip() if desc else f"Instagram Reel {sc}"),
         "c": "",
         "d": str(desc)[:10000],
         "a": str(author)[:300],
@@ -422,13 +402,7 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
     rec["c"] = category
     rec["cat_score"] = round(score, 4)
     rec["cat_method"] = method
-
-    return rec, {
-        "category": category,
-        "score": score,
-        "method": method,
-        "title_source": "caption-derived" if title_is_generic else "source-metadata",
-    }
+    return rec, {"category": category, "score": score, "method": method}
 
 
 def validate(records: list[dict], expected_base: list[dict] | None = None) -> None:
