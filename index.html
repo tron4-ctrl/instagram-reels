@@ -242,6 +242,7 @@ header .header-inner{padding-bottom:11px;}
 </style><style id="instagram-count-overrides">
 /* Premium Instagram-style total library count */
 .total-badge{
+  position:relative!important;
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -249,18 +250,78 @@ header .header-inner{padding-bottom:11px;}
   padding:9px 18px!important;
   border:0!important;
   border-radius:14px!important;
-  background:linear-gradient(135deg,#8b5cf6 0%,#c64ff1 48%,#ec4899 100%)!important;
+  overflow:hidden!important;
+
+  /* Rich Instagram pink / magenta */
+  background:linear-gradient(
+    135deg,
+    #ff4fa3 0%,
+    #ff2f92 28%,
+    #e1306c 58%,
+    #c13584 80%,
+    #833ab4 100%
+  )!important;
+
   color:#fff!important;
-  box-shadow:0 8px 20px rgba(201,76,229,.24), inset 0 1px 0 rgba(255,255,255,.18)!important;
+
+  box-shadow:
+    0 8px 22px rgba(225,48,108,.30),
+    0 2px 8px rgba(255,47,146,.22),
+    inset 0 1px 0 rgba(255,255,255,.25)!important;
+
   white-space:nowrap!important;
   flex:0 0 auto!important;
 }
+
+.total-badge::after{
+  content:""!important;
+  position:absolute!important;
+  top:-60%!important;
+  left:-45%!important;
+  width:32%!important;
+  height:220%!important;
+
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,.10) 35%,
+    rgba(255,255,255,.65) 50%,
+    rgba(255,255,255,.10) 65%,
+    transparent 100%
+  )!important;
+
+  transform:skewX(-20deg)!important;
+  animation:troyBadgeShine 3.2s ease-in-out infinite!important;
+  pointer-events:none!important;
+}
+
 .total-num{
+  position:relative!important;
+  z-index:1!important;
   color:#fff!important;
   font-size:.93rem!important;
   line-height:1!important;
-  font-weight:800!important;
+  font-weight:850!important;
   letter-spacing:.01em!important;
+  text-shadow:0 1px 8px rgba(0,0,0,.18)!important;
+}
+
+@keyframes troyBadgeShine{
+  0%{
+    left:-45%;
+    opacity:0;
+  }
+  15%{
+    opacity:1;
+  }
+  48%{
+    left:115%;
+    opacity:1;
+  }
+  60%,100%{
+    left:115%;
+    opacity:0;
+  }
 }
 .total-label{display:none!important;}
 #resultCount{display:none!important;}
