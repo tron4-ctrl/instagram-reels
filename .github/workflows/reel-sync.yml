@@ -1,0 +1,100 @@
+name: Instagram Reel Auto Sync
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Optional Instagram Reel URL(s), one per line"
+        required: false
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: instagram-reel-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name != 'issues' || github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install free dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir -r automation/requirements.txt
+
+      - name: Build submission URL list
+        env:
+          MANUAL_URLS: ${{ inputs.url }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+          : > /tmp/submission.txt
+          printf '%s\n' "${MANUAL_URLS:-}" >> /tmp/submission.txt
+          printf '%s\n' "${ISSUE_BODY:-}" >> /tmp/submission.txt
+          grep -Eoi 'https?://(www\.)?instagram\.com/reel/[A-Za-z0-9_-]+/?([?#][^[:space:]]*)?' /tmp/submission.txt \
+            | sed 's/[[:space:]]*$//' \
+            | sort -u > /tmp/reel_urls.txt || true
+          echo "Found $(wc -l < /tmp/reel_urls.txt) Reel URL(s)."
+
+      - name: Process direct submission
+        if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
+        env:
+          INSTAGRAM_COOKIES: ${{ secrets.INSTAGRAM_COOKIES }}
+          INSTAGRAM_COOKIES_B64: ${{ secrets.INSTAGRAM_COOKIES_B64 }}
+        run: |
+          set -euo pipefail
+          while IFS= read -r url; do
+            python automation/sync_reels.py "$url"
+          done < /tmp/reel_urls.txt
+
+      - name: Poll Telegram (optional)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ALLOWED_CHAT_ID: ${{ secrets.TELEGRAM_ALLOWED_CHAT_ID }}
+          INSTAGRAM_COOKIES: ${{ secrets.INSTAGRAM_COOKIES }}
+          INSTAGRAM_COOKIES_B64: ${{ secrets.INSTAGRAM_COOKIES_B64 }}
+        run: python automation/poll_telegram.py
+
+      - name: Full integrity validation
+        run: python automation/validate_library.py
+
+      - name: Commit only validated changes
+        run: |
+          set -euo pipefail
+          git config user.name "instagram-reel-sync[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep -q .; then
+            git add index.html data reel_covers automation/ingestion_log.jsonl automation/telegram_messages.jsonl automation/telegram_offset.json
+            git diff --cached --check
+            git commit -m "Auto-add Instagram Reel(s)"
+            git push origin HEAD:main
+          else
+            echo "No repository changes."
+          fi
+
+      - name: Close processed Issue
+        if: github.event_name == 'issues' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "✅ Reel ingestion workflow completed."
+          gh issue close "$ISSUE_NUMBER"

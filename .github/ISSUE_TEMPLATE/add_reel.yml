@@ -1,0 +1,12 @@
+name: Add Instagram Reel
+description: Submit one or more Reel URLs for automatic ingestion
+title: "Add Reel"
+body:
+  - type: textarea
+    id: urls
+    attributes:
+      label: Instagram Reel URL(s)
+      description: Paste one or more /reel/ URLs, one per line.
+      placeholder: https://www.instagram.com/reel/XXXXXXXXXXX/
+    validations:
+      required: true
