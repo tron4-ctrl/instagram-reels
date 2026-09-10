@@ -298,12 +298,28 @@ header .header-inner{padding-bottom:11px;}
 .total-num{
   position:relative!important;
   z-index:1!important;
-  color:#fff!important;
+
+  background:linear-gradient(
+    90deg,
+    #833ab4 0%,
+    #c13584 28%,
+    #e1306c 52%,
+    #fd1d1d 70%,
+    #f77737 85%,
+    #fcaf45 100%
+  )!important;
+
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  color:transparent!important;
+
   font-size:.93rem!important;
   line-height:1!important;
   font-weight:850!important;
   letter-spacing:.01em!important;
-  text-shadow:0 1px 8px rgba(0,0,0,.18)!important;
+
+  text-shadow:0 0 12px rgba(225,48,108,.22)!important;
 }
 
 @keyframes troyBadgeShine{
@@ -323,6 +339,14 @@ header .header-inner{padding-bottom:11px;}
     opacity:0;
   }
 }
+.title-row h1 img{
+  display:block;
+  width:120px;
+  height:auto;
+  max-height:48px;
+  object-fit:contain;
+}
+
 .total-label{display:none!important;}
 #resultCount{display:none!important;}
 .meta-row{min-height:0!important;padding-top:6px!important;}
@@ -352,7 +376,7 @@ header .header-inner{padding-bottom:11px;}
   <div class="header-inner">
     <div class="title-row">
       <div class="brand-copy">
-        <h1>TROY</h1>
+        <h1><img src="assets/troy-logo.png" alt="TROY"></h1>
         <div class="subtitle">A curated, searchable archive of your saved Instagram Reels.</div>
       </div>
       <div class="total-badge" aria-label="3,646 Reels in library" role="status">
