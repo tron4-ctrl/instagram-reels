@@ -364,7 +364,7 @@ header .header-inner{padding-bottom:11px;}
   width:18px;
   height:92px;
   z-index:75;
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
   opacity:.72;
@@ -406,6 +406,7 @@ header .header-inner{padding-bottom:11px;}
 
 @media(max-width:640px){
   #scrollPilot{
+    display:flex;
     right:7px;
     width:16px;
     height:78px;
@@ -637,44 +638,106 @@ document.querySelectorAll('.pill').forEach(btn=>btn.addEventListener('click',()=
 
 /* Header state machine: top=full, down=hidden, up=compact, returnToTop=visible lock. */
 
-/* Scroll Pilot */
+/* Mobile Scroll Pilot */
 const scrollPilot = document.getElementById('scrollPilot');
 const scrollThumb = scrollPilot.querySelector('.scroll-pilot-thumb');
+const scrollTrack = scrollPilot.querySelector('.scroll-pilot-track');
 
-let draggingScrollPilot = false;
+let scrollPilotDragging = false;
+let scrollPilotPointerId = null;
+
+function updateScrollPilot(){
+  if(scrollPilotDragging) return;
+
+  const maxScroll = Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight
+  );
+
+  const trackHeight = scrollTrack.clientHeight;
+  const thumbHeight = scrollThumb.offsetHeight;
+  const usable = Math.max(1, trackHeight - thumbHeight);
+
+  const progress = maxScroll ? window.scrollY / maxScroll : 0;
+  const y = thumbHeight / 2 + progress * usable;
+
+  scrollThumb.style.top = y + 'px';
+}
+
+function scrollPilotTo(clientY){
+  const rect = scrollTrack.getBoundingClientRect();
+  const thumbHeight = scrollThumb.offsetHeight;
+
+  const minY = thumbHeight / 2;
+  const maxY = rect.height - thumbHeight / 2;
+
+  const y = Math.max(
+    minY,
+    Math.min(maxY, clientY - rect.top)
+  );
+
+  const progress = (y - minY) / Math.max(1, maxY - minY);
+
+  const maxScroll = Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight
+  );
+
+  window.scrollTo({
+    top: progress * maxScroll,
+    behavior: 'auto'
+  });
+
+  scrollThumb.style.top = y + 'px';
+}
 
 scrollThumb.addEventListener('pointerdown', e => {
-  draggingScrollPilot = true;
+  if(window.innerWidth > 640) return;
+
+  scrollPilotDragging = true;
+  scrollPilotPointerId = e.pointerId;
+
   scrollThumb.setPointerCapture(e.pointerId);
+
+  scrollThumb.style.transition = 'none';
+  scrollThumb.style.transform = 'translate(-50%,-50%) scale(1.18)';
+
   e.preventDefault();
 });
 
 scrollThumb.addEventListener('pointermove', e => {
-  if (!draggingScrollPilot) return;
+  if(!scrollPilotDragging || e.pointerId !== scrollPilotPointerId) return;
 
-  const rect = scrollPilot.getBoundingClientRect();
-  const trackHeight = rect.height;
-  const centerY = rect.top + trackHeight / 2;
-
-  const distance = e.clientY - centerY;
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-
-  const speed = Math.max(-1, Math.min(1, distance / (trackHeight / 2)));
-
-  window.scrollTo({
-    top: window.scrollY + speed * maxScroll * 0.035,
-    behavior: 'auto'
-  });
+  scrollPilotTo(e.clientY);
+  e.preventDefault();
 });
 
-scrollThumb.addEventListener('pointerup', e => {
-  draggingScrollPilot = false;
-  scrollThumb.releasePointerCapture(e.pointerId);
+function stopScrollPilot(e){
+  if(e && e.pointerId !== scrollPilotPointerId) return;
+
+  scrollPilotDragging = false;
+  scrollPilotPointerId = null;
+
+  scrollThumb.style.transition = '';
+  scrollThumb.style.transform = 'translate(-50%,-50%)';
+
+  updateScrollPilot();
+}
+
+scrollThumb.addEventListener('pointerup', stopScrollPilot);
+scrollThumb.addEventListener('pointercancel', stopScrollPilot);
+
+scrollTrack.addEventListener('pointerdown', e => {
+  if(window.innerWidth > 640) return;
+  if(e.target === scrollThumb) return;
+
+  scrollPilotTo(e.clientY);
 });
 
-scrollThumb.addEventListener('pointercancel', () => {
-  draggingScrollPilot = false;
-});
+window.addEventListener('scroll', updateScrollPilot, {passive:true});
+window.addEventListener('resize', updateScrollPilot);
+
+updateScrollPilot();
 
 const header=document.querySelector('header');
 const backtop=document.getElementById('backtop');
