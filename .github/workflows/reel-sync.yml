@@ -23,6 +23,7 @@ jobs:
     if: github.event_name != 'issues' || github.event.issue.pull_request == null
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +36,11 @@ jobs:
           python-version: "3.12"
 
       - name: Install free dependencies
-        run: python -m pip install --disable-pip-version-check --no-cache-dir -r automation/requirements.txt
+        run: |
+          python -m pip install \
+            --disable-pip-version-check \
+            --no-cache-dir \
+            -r automation/requirements.txt
 
       - name: Build submission URL list
         env:
@@ -43,12 +48,19 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           set -euo pipefail
+
           : > /tmp/submission.txt
+
           printf '%s\n' "${MANUAL_URLS:-}" >> /tmp/submission.txt
           printf '%s\n' "${ISSUE_BODY:-}" >> /tmp/submission.txt
-          grep -Eoi 'https?://(www\.)?instagram\.com/reel/[A-Za-z0-9_-]+/?([?#][^[:space:]]*)?' /tmp/submission.txt \
+
+          grep -Eoi \
+            'https?://(www\.)?instagram\.com/reel/[A-Za-z0-9_-]+/?([?#][^[:space:]]*)?' \
+            /tmp/submission.txt \
             | sed 's/[[:space:]]*$//' \
-            | sort -u > /tmp/reel_urls.txt || true
+            | sort -u \
+            > /tmp/reel_urls.txt || true
+
           echo "Found $(wc -l < /tmp/reel_urls.txt) Reel URL(s)."
 
       - name: Process direct submission
@@ -58,9 +70,57 @@ jobs:
           INSTAGRAM_COOKIES_B64: ${{ secrets.INSTAGRAM_COOKIES_B64 }}
         run: |
           set -euo pipefail
+
+          : > /tmp/ingestion_results.jsonl
+
           while IFS= read -r url; do
-            python automation/sync_reels.py "$url"
+            [ -z "$url" ] && continue
+
+            echo "Processing: $url"
+
+            if output="$(python automation/sync_reels.py "$url" 2>&1)"; then
+              python - "$output" >> /tmp/ingestion_results.jsonl <<'PY'
+          import json
+          import sys
+
+          raw = sys.argv[1].strip()
+
+          try:
+              parsed = json.loads(raw)
+
+              if isinstance(parsed, list) and parsed:
+                  result = parsed[0]
+              elif isinstance(parsed, dict):
+                  result = parsed
+              else:
+                  result = {
+                      "status": "error",
+                      "reason": raw[-1000:],
+                  }
+          except Exception:
+              result = {
+                  "status": "error",
+                  "reason": raw[-1000:],
+              }
+
+          print(json.dumps(result, ensure_ascii=False))
+          PY
+            else
+              python - "$output" >> /tmp/ingestion_results.jsonl <<'PY'
+          import json
+          import sys
+
+          print(json.dumps({
+              "status": "error",
+              "reason": sys.argv[1][-1000:]
+          }, ensure_ascii=False))
+          PY
+            fi
+
           done < /tmp/reel_urls.txt
+
+          echo "Ingestion results:"
+          cat /tmp/ingestion_results.jsonl
 
       - name: Full integrity validation
         run: python automation/validate_library.py
@@ -68,16 +128,148 @@ jobs:
       - name: Commit only validated changes
         run: |
           set -euo pipefail
+
           git config user.name "instagram-reel-sync[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           if git status --porcelain | grep -q .; then
-            git add index.html data reel_covers automation/ingestion_log.jsonl automation/telegram_messages.jsonl automation/telegram_offset.json
+            git add \
+              index.html \
+              data \
+              reel_covers \
+              automation/ingestion_log.jsonl \
+              automation/telegram_messages.jsonl \
+              automation/telegram_offset.json
+
             git diff --cached --check
+
             git commit -m "Auto-add Instagram Reel(s)"
             git push origin HEAD:main
+
+            echo "CHANGES_PUSHED=true" >> "$GITHUB_ENV"
           else
             echo "No repository changes."
+            echo "CHANGES_PUSHED=false" >> "$GITHUB_ENV"
           fi
+
+      - name: Telegram confirmation
+        if: github.event_name == 'workflow_dispatch' && success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_ALLOWED_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+            echo "Telegram bot token is not configured."
+            exit 0
+          fi
+
+          if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
+            echo "Telegram chat ID is not configured."
+            exit 0
+          fi
+
+          python - <<'PY'
+          import json
+          import os
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          chat_id = os.environ["TELEGRAM_CHAT_ID"]
+
+          results = []
+
+          try:
+              with open("/tmp/ingestion_results.jsonl", encoding="utf-8") as f:
+                  for line in f:
+                      line = line.strip()
+                      if not line:
+                          continue
+
+                      try:
+                          value = json.loads(line)
+
+                          if isinstance(value, dict):
+                              results.append(value)
+                          else:
+                              results.append({
+                                  "status": "error",
+                                  "reason": str(value),
+                              })
+
+                      except json.JSONDecodeError:
+                          results.append({
+                              "status": "error",
+                              "reason": line[-1000:],
+                          })
+          except FileNotFoundError:
+              results = []
+
+          parts = []
+
+          for result in results:
+              status = result.get("status")
+
+              if status == "added":
+                  parts.append(
+                      "✅ Reel added to TROY\n"
+                      f"Reel: {result.get('shortcode', 'Unknown')}\n"
+                      f"Category: {result.get('category', 'Unknown')}\n"
+                      f"Library: {result.get('total', 'Unknown')} Reels"
+                  )
+
+              elif status == "duplicate":
+                  parts.append(
+                      "ℹ️ Already in TROY\n"
+                      f"Reel: {result.get('shortcode', 'Unknown')}\n"
+                      f"Library: {result.get('total', 'Unknown')} Reels"
+                  )
+
+              elif status == "ignored":
+                  parts.append(
+                      "⚠️ Reel ignored\n"
+                      f"{result.get('reason', 'Invalid Reel URL')}"
+                  )
+
+              else:
+                  parts.append(
+                      "❌ Reel processing failed\n"
+                      f"{result.get('reason', 'Unknown error')}"
+                  )
+
+          if not parts:
+              parts.append("⚠️ TROY: No Reel URL was processed.")
+
+          message = "\n\n".join(parts)
+
+          api_url = f"https://api.telegram.org/bot{token}/sendMessage"
+
+          payload = urlencode({
+              "chat_id": chat_id,
+              "text": message,
+              "disable_web_page_preview": "true",
+          }).encode()
+
+          request = Request(
+              api_url,
+              data=payload,
+              method="POST",
+              headers={
+                  "User-Agent": "TROY-Reel-Sync",
+                  "Content-Type": "application/x-www-form-urlencoded",
+              },
+          )
+
+          with urlopen(request, timeout=30) as response:
+              if response.status != 200:
+                  raise RuntimeError(
+                      f"Telegram sendMessage returned HTTP {response.status}"
+                  )
+
+          print("Telegram confirmation sent successfully.")
+          PY
 
       - name: Close processed Issue
         if: github.event_name == 'issues' && success()
@@ -85,5 +277,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue comment "$ISSUE_NUMBER" --body "✅ Reel ingestion workflow completed."
+          gh issue comment "$ISSUE_NUMBER" \
+            --body "✅ Reel ingestion workflow completed."
+
           gh issue close "$ISSUE_NUMBER"
