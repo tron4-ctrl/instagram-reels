@@ -355,6 +355,71 @@ header .header-inner{padding-bottom:11px;}
 .dash{display:none!important;}
 .image-error{background:linear-gradient(135deg,#25101b,#11131a);}
 .image-error img{display:none;}
+
+#scrollPilot{
+  position:fixed;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:18px;
+  height:92px;
+  z-index:75;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.72;
+  transition:opacity .2s ease,transform .2s ease;
+}
+
+#scrollPilot:hover{
+  opacity:1;
+}
+
+.scroll-pilot-track{
+  position:relative;
+  width:4px;
+  height:72px;
+  border-radius:999px;
+  background:rgba(255,255,255,.16);
+  box-shadow:0 0 10px rgba(139,92,246,.16);
+}
+
+.scroll-pilot-thumb{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:14px;
+  height:14px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:linear-gradient(135deg,#ff4fa3,#e1306c,#833ab4);
+  box-shadow:0 2px 10px rgba(225,48,108,.38);
+  cursor:grab;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+
+.scroll-pilot-thumb:active{
+  cursor:grabbing;
+  transform:translate(-50%,-50%) scale(1.18);
+  box-shadow:0 3px 14px rgba(225,48,108,.55);
+}
+
+@media(max-width:640px){
+  #scrollPilot{
+    right:7px;
+    width:16px;
+    height:78px;
+  }
+
+  .scroll-pilot-track{
+    height:60px;
+  }
+
+  .scroll-pilot-thumb{
+    width:12px;
+    height:12px;
+  }
+}
 </style></head>
 <body>
 <header id="libraryHeader">
@@ -414,6 +479,12 @@ header .header-inner{padding-bottom:11px;}
 </main>
 
 <footer>TROY · Your Personal Reel Library</footer>
+
+<div id="scrollPilot" title="Drag to scroll" aria-label="Scroll controller">
+  <div class="scroll-pilot-track">
+    <div class="scroll-pilot-thumb"></div>
+  </div>
+</div>
 
 <button id="backtop" title="Back to top" aria-label="Back to top">&#8593;</button>
 
@@ -565,6 +636,46 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
 document.querySelectorAll('.pill').forEach(btn=>btn.addEventListener('click',()=>{state.cover=btn.dataset.cover;applyFilters();}));
 
 /* Header state machine: top=full, down=hidden, up=compact, returnToTop=visible lock. */
+
+/* Scroll Pilot */
+const scrollPilot = document.getElementById('scrollPilot');
+const scrollThumb = scrollPilot.querySelector('.scroll-pilot-thumb');
+
+let draggingScrollPilot = false;
+
+scrollThumb.addEventListener('pointerdown', e => {
+  draggingScrollPilot = true;
+  scrollThumb.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+
+scrollThumb.addEventListener('pointermove', e => {
+  if (!draggingScrollPilot) return;
+
+  const rect = scrollPilot.getBoundingClientRect();
+  const trackHeight = rect.height;
+  const centerY = rect.top + trackHeight / 2;
+
+  const distance = e.clientY - centerY;
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+  const speed = Math.max(-1, Math.min(1, distance / (trackHeight / 2)));
+
+  window.scrollTo({
+    top: window.scrollY + speed * maxScroll * 0.035,
+    behavior: 'auto'
+  });
+});
+
+scrollThumb.addEventListener('pointerup', e => {
+  draggingScrollPilot = false;
+  scrollThumb.releasePointerCapture(e.pointerId);
+});
+
+scrollThumb.addEventListener('pointercancel', () => {
+  draggingScrollPilot = false;
+});
+
 const header=document.querySelector('header');
 const backtop=document.getElementById('backtop');
 let lastScrollY=Math.max(0,window.scrollY||0), scrollRaf=0, returnToTop=false;
