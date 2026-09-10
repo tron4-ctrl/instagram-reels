@@ -98,7 +98,7 @@ HINTS: dict[str, list[str]] = {
     "Python Programming": ["python", "pandas", "numpy", "flask", "django"],
     "Web Development": ["html", "css", "javascript", "react", "frontend", "webdevelopment", "webdeveloper", "nextjs", "nodejs"],
     "DevOps / Software Engineering": ["devops", "docker", "kubernetes", "cicd", "microservices", "backend", "softwareengineering", "awsdevops"],
-    "AI Tools & Generative AI": ["chatgpt", "openai", "generativeai", "genai", "promptengineering", "claude", "gemini", "llm", "artificialintelligence", "midjourney", "copilot"],
+    "AI Tools & Generative AI": ["chatgpt", "gpt", "openai", "generativeai", "genai", "prompt", "prompts", "promptengineering", "claude", "gemini", "llm", "artificialintelligence", "midjourney", "copilot"],
     "Cybersecurity": ["cybersecurity", "infosec", "ethicalhacking", "penetrationtesting", "bugbounty", "phishing", "malware", "cybersecurityawareness"],
     "Software Testing & QA": ["softwaretesting", "testing", "selenium", "qaautomation", "junit", "testautomation", "qualityassurance"],
     "Networking / IT Infrastructure": ["networking", "ccna", "cisco", "router", "switch", "tcpip", "dns", "linuxserver"],
@@ -279,15 +279,112 @@ def fetch_cover_via_ytdlp(item: dict) -> tuple[bytes, str]:
 
     return data, hashlib.sha256(data).hexdigest()
 
+GENERIC_TITLE_PATTERNS = (
+    re.compile(r"^video\s+by\s+.+$", re.I),
+    re.compile(r"^reel\s+by\s+.+$", re.I),
+    re.compile(r"^post\s+by\s+.+$", re.I),
+    re.compile(r"^instagram\s+reel(?:\s+by\s+.+)?$", re.I),
+    re.compile(r"\bon\s+instagram\s*:", re.I),
+    re.compile(r"^video$|^reel$|^instagram$", re.I),
+)
+
+CTA_PREFIXES = (
+    "follow for",
+    "follow me",
+    "comment ",
+    "dm me",
+    "dm ",
+    "link in bio",
+    "save this",
+    "share this",
+    "tag ",
+    "subscribe",
+)
+
+
+def _is_generic_title(title: str) -> bool:
+    candidate = re.sub(r"\s+", " ", str(title or "").strip())
+    if not candidate:
+        return True
+    return any(p.search(candidate) for p in GENERIC_TITLE_PATTERNS)
+
+
+def _clean_title_candidate(text: str) -> str:
+    text = re.sub(r"https?://\S+", " ", str(text or ""))
+    text = re.sub(r"(?<!\w)#[\w-]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip(" -–—|•·")
+    return text.strip()
+
+
+def _derive_display_title(description: str, shortcode: str) -> str:
+    """
+    Derive a concise display title from caption/context only when the source
+    title is generic. The stored description/caption is never modified.
+    """
+    desc = str(description or "").replace("\r", "\n").strip()
+    if not desc:
+        return f"Instagram Reel {shortcode}"
+
+    chunks = [c.strip() for c in re.split(r"\n+|\|+", desc) if c.strip()]
+    candidates: list[str] = []
+
+    for chunk in chunks:
+        cleaned = _clean_title_candidate(chunk)
+        if not cleaned:
+            continue
+
+        lowered = cleaned.lower()
+        if any(lowered.startswith(prefix) for prefix in CTA_PREFIXES):
+            continue
+
+        if len(re.findall(r"\b[\w’'-]+\b", cleaned)) < 3:
+            continue
+
+        candidates.append(cleaned)
+
+    if not candidates:
+        return f"Instagram Reel {shortcode}"
+
+    candidate = candidates[0]
+
+    # Prefer a complete opening sentence/question when available.
+    sentence_match = re.match(r"^(.{12,160}?[.!?])(?:\s|$)", candidate)
+    if sentence_match:
+        candidate = sentence_match.group(1).strip()
+
+    if len(candidate) > 120:
+        candidate = (
+            re.sub(r"\s+", " ", candidate[:121])
+            .rsplit(" ", 1)[0]
+            .rstrip(".,;:!?-")
+        )
+
+    return candidate or f"Instagram Reel {shortcode}"
+
+
 def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]:
     sc = canonical_shortcode(url)
     if not sc:
         raise RuntimeError("invalid Instagram Reel URL")
-    title = item.get("title") or item.get("fulltitle") or item.get("raw_title") or ""
+
+    raw_title = (
+        item.get("title")
+        or item.get("fulltitle")
+        or item.get("raw_title")
+        or item.get("og:title")
+        or ""
+    )
     desc = item.get("description") or item.get("caption") or item.get("text") or ""
-    author = item.get("uploader") or item.get("uploader_id") or item.get("author_username") or item.get("username") or ""
+    author = (
+        item.get("uploader")
+        or item.get("uploader_id")
+        or item.get("author_username")
+        or item.get("username")
+        or ""
+    )
     upload = item.get("upload_date") or item.get("timestamp") or ""
     dt = ""
+
     if isinstance(upload, (int, float)):
         dt = datetime.fromtimestamp(upload, timezone.utc).date().isoformat()
     else:
@@ -297,10 +394,19 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
         elif re.match(r"\d{4}-\d{2}-\d{2}", s):
             dt = s[:10]
 
+    source_title = str(raw_title).strip()
+    title_is_generic = _is_generic_title(source_title)
+
+    display_title = (
+        _derive_display_title(str(desc), sc)
+        if title_is_generic
+        else source_title[:1000]
+    )
+
     rec = {
         "sc": sc,
         "u": canonical_url(sc),
-        "t": str(title)[:1000] or (str(desc).split("|")[0].strip() if desc else f"Instagram Reel {sc}"),
+        "t": display_title[:1000],
         "c": "",
         "d": str(desc)[:10000],
         "a": str(author)[:300],
@@ -311,11 +417,18 @@ def make_record(item: dict, url: str, existing: list[dict]) -> tuple[dict, dict]
         "img": f"{sc}.jpg",
         "ingested_at": now(),
     }
+
     category, score, method = classify(rec, existing)
     rec["c"] = category
     rec["cat_score"] = round(score, 4)
     rec["cat_method"] = method
-    return rec, {"category": category, "score": score, "method": method}
+
+    return rec, {
+        "category": category,
+        "score": score,
+        "method": method,
+        "title_source": "caption-derived" if title_is_generic else "source-metadata",
+    }
 
 
 def validate(records: list[dict], expected_base: list[dict] | None = None) -> None:
