@@ -1,0 +1,801 @@
+{
+  "schema_version": "1.0",
+  "project": "TROY",
+  "canonical_category_count": 38,
+  "canonical_categories": [
+    "General / Relatable & Miscellaneous Content",
+    "Uncategorized / No Content Available",
+    "Programming / Coding General",
+    "Java / Programming Interview Prep",
+    "Web Development",
+    "DevOps / Software Engineering",
+    "Data Science / Analytics",
+    "AI Tools & Generative AI",
+    "Cybersecurity",
+    "Technology / Gadgets",
+    "Career / Jobs & Hiring",
+    "Career Growth & Workplace",
+    "Resume & Interview Preparation",
+    "Freelancing & Entrepreneurship",
+    "Personal Finance & Money",
+    "Education & Exams",
+    "English & Language Learning",
+    "Fitness & Workout",
+    "Health & Wellness",
+    "Fashion & Beauty",
+    "Hair & Grooming",
+    "Astrology / Spirituality",
+    "Life Hacks & Productivity Tips",
+    "Art & Creativity",
+    "Food & Recipes",
+    "Travel & Places",
+    "Chennai / Local Tamil Nadu Information",
+    "Automobile / Vehicle Review",
+    "Road Safety / Driving Tips",
+    "Movies & Entertainment",
+    "Kollywood / Tamil Movie Fan Edits",
+    "Tamil Comedy & Memes",
+    "Comedy & Entertainment (General)",
+    "Music & Songs",
+    "Gaming",
+    "Motivation & Self Improvement",
+    "Relationships & Friendship",
+    "Animals & Pets"
+  ],
+  "categories": [
+    {
+      "name": "General / Relatable & Miscellaneous Content",
+      "spec": {
+        "Definition": "Content with a genuinely non-specific subject — a\nreaction, mood, or relatable moment with no recoverable topic beyond\n\"this resonated,\" even after the full evidence hierarchy is applied.",
+        "Include when": "caption/hashtags/OCR/account signal collectively fail to\nsupport any of the other 37 categories, *and* the failure isn't due to a\nknown extraction defect.",
+        "Exclude when": "any specific, nameable subject is present (a product, a\nplace, a person, a skill, an event) — even briefly or thinly stated.",
+        "Primary evidence": "absence of positive evidence elsewhere, not evidence\nfor General itself — General is never selected by a positive signal, only\nby exhaustion of the other 37.",
+        "Positive signals": "none — this category has no positive signal set by\ndesign. Treat any rule that tries to give General a positive trigger as a\nbug.",
+        "Negative signals": "any hashtag naming a real entity (person, place,\nbrand, skill); any caption sentence with a concrete noun beyond a\nfeeling-word.",
+        "Confusable categories": "Uncategorized / No Content Available (the\ncritical distinction — see Section 5); every other category is\n\"confusable\" in the sense that General is the default loser against all\nof them.",
+        "Deterministic tie-break rule": "General never wins a tie. If any other\ncategory clears even a thin evidentiary bar, that category wins.",
+        "Language handling": "no special handling — a Tamil/Tanglish caption with\nno recoverable topic is General exactly as an English one would be; the\nabsence-of-topic test is language-independent.",
+        "Format vs. subject rule": "neither — General is explicitly an\nevidence-state, not a format or a subject. It should be thought of as \"no\nsubject identified,\" structurally different from \"video content.\"",
+        "Minimum evidence requirement": "none required to *assign* General — it\nrequires the *absence* of evidence for anything else, which is a\ndifferent kind of check (exhaustion, not accumulation).",
+        "General fallback interaction": "N/A — this is the fallback.",
+        "Review trigger": "any General assignment on a caption that also matches\nthe known metadata-only-caption extraction pattern (Section 5) must\ncarry `needs_review: true`, not be treated as a confident General.",
+        "Positive examples": "**none confirmed in the evidence base.** Across all\n60 Sorti-touched Reels investigated in this project, zero produced a\npositive, independently-confirmed \"this is genuinely General\" result —\nevery General-origin item checked so far turned out to have a recoverable\ntopic. This is stated plainly rather than inventing an example; it means\nGeneral's correctness has not yet been positively demonstrated, only its\ncurrent over-use has been demonstrated repeatedly.\n\n---"
+      }
+    },
+    {
+      "name": "Uncategorized / No Content Available",
+      "spec": {
+        "Definition": "The evidence itself is unavailable or unusable — not a\ntopic judgment at all, a statement about data quality.",
+        "Include when": "caption field is empty, is the literal placeholder\n`\"(No caption text available for this Reel.)\"`, or matches the confirmed\nmetadata-only-caption pattern (`\"97K likes, 127 comments - username on\ndate\"`) with no other usable field (title, OCR) providing content.",
+        "Exclude when": "any real words exist in the caption, even thin or\ngeneric ones (\"Just for fun keep smiling 😊\" is General, not\nUncategorized — it has real, if generic, text).",
+        "Primary evidence": "the caption field's literal content/absence.",
+        "Positive signals": "empty string; the literal no-caption placeholder;\nthe regex-confirmed engagement-metadata pattern.",
+        "Negative signals": "any actual sentence, even a short or generic one.",
+        "Confusable categories": "General (see Section 5 for the precise\noperational test separating the two).",
+        "Deterministic tie-break rule": "if there is any real text at all,\nUncategorized loses to General or a specific category — Uncategorized\nrequires the *complete absence* of usable text, not just thin text.",
+        "Language handling": "N/A — the test is about presence/absence of text,\nnot its language.",
+        "Format vs. subject rule": "neither — same evidence-state nature as\nGeneral, one level more extreme (no evidence at all vs. evidence that\ndoesn't resolve to a topic).",
+        "Minimum evidence requirement": "zero, by definition — this is the\n\"below minimum evidence\" category.",
+        "General fallback interaction": "Uncategorized is checked *before*\nGeneral in the evidence hierarchy — if the caption is truly empty,\nUncategorized applies directly; General is only reached once there's\n*something* to have failed to resolve.",
+        "Review trigger": "any Uncategorized assignment on a caption matching the\nmetadata-only pattern specifically (not a truly empty caption) should\ncarry `needs_review: true`, since that pattern is the one under active\nsuspicion of being an extraction bug rather than genuinely absent content\n(Section 5, Caption Extraction Audit from the prior benchmark spec).",
+        "Positive examples": "`DF5I4VBMZD1`, `DNzjg6RZhce`, `DL2c1LWCoT8` — all\nthree carry the literal `\"(No caption text available for this Reel.)\"`\nplaceholder, confirmed from the earlier semantic-model benchmark work.\n\n---"
+      }
+    },
+    {
+      "name": "Programming / Coding General",
+      "spec": {
+        "Definition": "General-purpose programming education, coding concepts,\nand language tutorials not specific to web front-ends, deployment/infra,\nor data/analytics work, and not specifically interview/DSA-prep framed.",
+        "Include when": "content teaches or discusses programming languages,\nsyntax, or concepts (any language) without a web-, infra-, data-, or\ninterview-specific frame.",
+        "Exclude when": "the web/infra/data/interview-specific frame is present\n(routes to the sibling category instead).",
+        "Primary evidence": "caption/hashtags naming a programming language or\nconcept directly.",
+        "Positive signals": "language names (Java, Python, C++) without a\nqualifying domain word; \"learn to code,\" \"programming concepts,\" coding\nmemes.",
+        "Negative signals": "\"interview,\" \"DSA,\" \"placement\" (→ Java/Programming\nInterview Prep); \"website,\" \"frontend,\" \"React\" (→ Web Development);\n\"deploy,\" \"pipeline,\" \"Docker\" (→ DevOps); \"SQL,\" \"data analyst\" (→ Data\nScience); consumer-audience framing with no code shown (→ Technology /\nGadgets).",
+        "Confusable categories": "Java / Programming Interview Prep, Web\nDevelopment, DevOps / Software Engineering, Data Science / Analytics,\nTechnology / Gadgets.",
+        "Deterministic tie-break rule": "see Section 4 boundary matrix — resolved\nby domain-specific keyword presence, not by \"Programming\" being a\ncatch-all default for anything code-adjacent.",
+        "Language handling": "Tanglish coding content (e.g., Tamil words used as\nvariable-name jokes in an otherwise-genuine Python tutorial) still counts\nas Programming if the actual instructional content is programming — the\nlanguage of the surrounding commentary doesn't change the subject.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "at least one specific language/concept\nname, not just the word \"coding\" or \"tech\" alone.",
+        "General fallback interaction": "a caption that only says \"coding is\nhard lol\" with no specific language/concept named and no code shown is\nNOT enough for this category — check Comedy & Entertainment (General)\nfirst (the \"Engineering-means-comedy\" pattern applies here too), then\nGeneral.",
+        "Review trigger": "caption contains a language name AND explicit\ncomedic/meme framing with no real instructional content (ambiguous\nbetween this category and Comedy) — flag for review rather than guessing.",
+        "Positive examples": "`DSDEAMNAYIA` (\"Why Java is faster than python\"),\n`Dcvwx2qNp9k` (\"45-Day DSA with Python Batch 1... coding interviews\" —\nnote this one actually leans toward Java/Programming Interview Prep given\nthe explicit interview framing, illustrating the boundary in practice),\n`Cr-ClVFpfyB` (Python code example using Tamil-comedy variable names,\nstill genuinely teaching syntax).\n\n---"
+      }
+    },
+    {
+      "name": "Java / Programming Interview Prep",
+      "spec": {
+        "Definition": "Coding-interview and DSA-preparation content, specific to\nlanding a technical job — language-agnostic in principle but named \"Java\"\nbecause that's the dominant language observed in this library's interview\ncontent.",
+        "Include when": "content is explicitly interview/placement/DSA-prep\nframed, regardless of which language is used.",
+        "Exclude when": "general language teaching with no interview/placement\nframing (→ Programming / Coding General).",
+        "Primary evidence": "explicit interview/DSA/placement language in\ncaption or hashtags.",
+        "Positive signals": "\"interview questions,\" \"DSA,\" \"placement,\"\n\"coding round,\" \"45-day challenge... interviews.\"",
+        "Negative signals": "no interview/placement framing at all — a Java\ntutorial with no interview angle is Programming / Coding General, not\nthis category, regardless of language.",
+        "Confusable categories": "Programming / Coding General, Career / Jobs &\nHiring (interview *content* vs. interview *logistics/opportunities*),\nResume & Interview Preparation (technical coding interviews specifically\nvs. general interview conduct/resume content).",
+        "Deterministic tie-break rule": "if the content is a technical\ncoding/DSA question itself → this category. If it's about interview\n*etiquette*, *scheduling*, or *resume-building* with no actual coding\ncontent → Resume & Interview Preparation. If it's about *finding* the\ninterview opportunity → Career / Jobs & Hiring.",
+        "Language handling": "Tanglish interview-prep content (confirmed real,\n`DVODEUaEtM-`) is fully in-scope — language of narration doesn't change\nsubject.",
+        "Format vs. subject rule": "subject (a specific professional-skill\nniche).",
+        "Minimum evidence requirement": "explicit interview/DSA/placement\nlanguage, not just the presence of code.",
+        "General fallback interaction": "rare — interview-prep content almost\nalways has enough specific signal to avoid General.",
+        "Review trigger": "content that mixes genuine DSA teaching with heavy\ncomedic framing (rare but possible) — flag rather than force a choice.",
+        "Positive examples": "`DbQsKoBzRQt` (\"Java 50 interview questions\"),\n`DH2fIFgzVsG` (\"Java is tough until...\"), `DVODEUaEtM-` (Sorti-confirmed\n\"Software Engineering\" — Tanglish, Zoho-specific coding-interview\ncontent, DSA-roadmap framing).\n\n---"
+      }
+    },
+    {
+      "name": "Web Development",
+      "spec": {
+        "Definition": "Building, styling, or deploying websites/web\napplications — frontend, backend-for-web, or web-specific tooling and\nbusiness (pricing, client work).",
+        "Include when": "content is about a website/web-app as the deliverable\n— design, code, or the business of building one.",
+        "Exclude when": "the content is general backend/infra with no web-page\nframing (→ DevOps), or general programming with no web subject (→\nProgramming / Coding General).",
+        "Primary evidence": "caption/hashtags naming web-specific terms (React,\nfrontend, website, UI/UX-for-web, web design pricing).",
+        "Positive signals": "`#webdevelopment`, `#website`, `#react`, `#frontend`,\n`#webdesign`, client/pricing language tied explicitly to a website\ndeliverable.",
+        "Negative signals": "generic \"portfolio\"/\"developer\" language with no\nweb-specific term; deployment/infra language with no page/site framing\n(→ DevOps).",
+        "Confusable categories": "Programming / Coding General, DevOps / Software\nEngineering, Art & Creativity (web *design* specifically, aesthetic\nframing).",
+        "Deterministic tie-break rule": "is a website/web-app the explicit\ndeliverable? → Web Development. Is the deliverable a static visual design\nwith no code/site implied? → Art & Creativity. Is the focus\ninfrastructure/deployment with no page-level framing? → DevOps.",
+        "Language handling": "no special handling needed — web-dev terminology\nis consistently English/technical regardless of surrounding\nTamil/Tanglish commentary.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "at least one web-specific term, not just\n\"developer\" or \"tech\" alone (those alone → Programming / Coding General\nor Technology / Gadgets depending on audience).",
+        "General fallback interaction": "the confirmed historical failure case\n(`DdGQC_tRDCw`, `DQ3eXFDkQ2X`) — a dismissive/generic opening line drowning\nout a decisive `#webdesign` signal, both incorrectly reached General\nunder the legacy classifier. Do not let opening-line tone override a\nclear web-specific hashtag later in the caption.",
+        "Review trigger": "caption has web-specific tags but the described\ndeliverable is ambiguous between a website and a broader digital product\n— flag rather than guess.",
+        "Positive examples": "`DNQvckKo7VB` (\"How DNS Works in 60 Seconds\"),\n`DdGQC_tRDCw` (Sorti-confirmed \"Web Design,\" website pricing guide),\n`DQ3eXFDkQ2X` (Sorti-confirmed \"Engineering\" per Sorti's own inconsistent\nlabel, but description confirms web-dev/React/portfolio content).\n\n---"
+      }
+    },
+    {
+      "name": "DevOps / Software Engineering",
+      "spec": {
+        "Definition": "Backend systems, deployment pipelines, cloud\ninfrastructure, networking, system design, and software testing/QA — the\nbuild-and-run-in-production side of software engineering.",
+        "Include when": "content is about infrastructure, deployment,\nnetworking, system design, or test automation.",
+        "Exclude when": "the content is web-page-specific (→ Web Development) or\ngeneral language-syntax teaching with no infra/testing angle (→\nProgramming / Coding General).",
+        "Primary evidence": "caption/hashtags naming infra/deployment/networking/\ntesting terms.",
+        "Positive signals": "\"Docker,\" \"Kubernetes,\" \"microservices,\" \"system\ndesign,\" \"CCNA,\" \"Selenium,\" \"test automation,\" \"CI/CD.\"",
+        "Negative signals": "pure language-syntax content with no infra/testing\nsubject; web-page-specific framing (→ Web Development).",
+        "Confusable categories": "Programming / Coding General, Web Development,\nTechnology / Gadgets (professional infra content vs. consumer tech tips).",
+        "Deterministic tie-break rule": "is deployment/infra/networking/testing\nthe explicit subject? → DevOps. Is it a passing mention inside otherwise\ngeneral coding content? → Programming / Coding General.",
+        "Language handling": "Tanglish infra content (e.g., a Tamil-narrated\nsystem-design explainer) is fully in-scope.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit infra/deployment/networking/\ntesting term, not just \"backend\" alone (which could also fit Programming).",
+        "General fallback interaction": "uncommon — infra content tends to carry\nenough specific technical vocabulary to avoid General.",
+        "Review trigger": "content mixing genuine system-design teaching with an\ninterview-prep frame — could belong here or in Java/Programming Interview\nPrep; flag if truly ambiguous.",
+        "Positive examples": "`DR4d3N3CJkw` (\"learn Microservices architecture\"),\n`DQTDseJDw9z` (CCNA/networking training), `DYyr5ELxm6c` (\"Learn selenium.\nLearn jmeter, Learn playwright\").\n\n---"
+      }
+    },
+    {
+      "name": "Data Science / Analytics",
+      "spec": {
+        "Definition": "SQL, data analysis, and the data-analyst/data-scientist\ncareer and skill path — distinct from general programming.",
+        "Include when": "content is specifically about data manipulation,\nanalysis, SQL, or the data-science career track.",
+        "Exclude when": "general Python/programming syntax with no data/analytics\nframing (→ Programming / Coding General).",
+        "Primary evidence": "caption/hashtags naming SQL, data analysis, or\nexplicit data-science career language.",
+        "Positive signals": "\"SQL,\" \"primary key,\" \"data analyst,\" \"ETL,\" \"data\nscience roadmap.\"",
+        "Negative signals": "general language-syntax content with no data\nsubject.",
+        "Confusable categories": "Programming / Coding General.",
+        "Deterministic tie-break rule": "is data manipulation/analysis/SQL the\nexplicit subject? → Data Science. Is it general language syntax that\nhappens to be Python? → Programming / Coding General.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit data/SQL/analytics term.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "content that's ambiguous between data-engineering\n(infra-adjacent, could be DevOps) and data-analysis (this category) —\nflag if the distinction isn't clear from the caption.",
+        "Positive examples": "`DRUxOwriRIi` (\"Primary Key & Foreign Key\"),\n`DaFlCKrSzVu` (\"SQL is one of the most underrated skills... 2.5 hour SQL\ncourse\" — Sorti-adjacent, from the earlier semantic-model benchmark\nsample), `DMl9qW9RFr4` (\"software engineer to a data scientist\").\n\n---"
+      }
+    },
+    {
+      "name": "AI Tools & Generative AI",
+      "spec": {
+        "Definition": "Using, reviewing, or explaining AI products (ChatGPT,\nClaude, Gemini, image/video generators) as tools — not the underlying\nengineering of building them.",
+        "Include when": "content names or demos a specific AI product/tool/\nfeature.",
+        "Exclude when": "content uses AI/product names as decoration on\notherwise-unrelated content (e.g., a personal-anecdote video with an\nincidental `#chatgpt` tag and no actual AI content — confirmed real\nfailure case, `DRVQX4RAafH`, correctly excluded to General); or when\n\"AI\" appears only as generic aspirational language with no product named\n(→ Motivation & Self Improvement, per the coconut-water-case exclusion\nrule).",
+        "Primary evidence": "a named AI product or a demonstrated AI-tool\nfeature/output.",
+        "Positive signals": "\"ChatGPT,\" \"Claude,\" \"Gemini,\" specific AI-tool\nfeature names, AI-generated content shown as the subject.",
+        "Negative signals": "AI-adjacent hashtag with no actual AI content\nvisible in caption/description; generic \"AI will change everything\"\nlanguage with no product named.",
+        "Confusable categories": "Motivation & Self Improvement (the confirmed\nfalse-attractor pattern — aspirational language wrapping a specific\nproduct should route here, not there, but generic aspirational language\nabout AI-as-a-trend with no product belongs in Motivation instead),\nData Science / Analytics (AI-as-consumer-tool vs. AI/ML-as-engineering-\ndiscipline — this category is for the former).",
+        "Deterministic tie-break rule": "is a specific product/feature named and\ndemonstrated? → AI Tools. Is the language generic/aspirational with no\nproduct? → Motivation & Self Improvement.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a named AI product, not just the letters\n\"AI\" in a hashtag.",
+        "General fallback interaction": "an AI-hashtagged caption with zero real\nAI content and zero other topic (like `DRVQX4RAafH`) correctly goes to\nGeneral, not here — the hashtag is not sufficient evidence alone.",
+        "Review trigger": "caption names an AI product but the actual\ndemonstrated content is ambiguous or the hashtag looks tacked-on — flag.",
+        "Positive examples": "`DbIawIYsj19` (\"ChatGPT Pro worth Rs. 10,699 for\nfree\"), `DZ31KYDRoMk` (\"four techniques to reduce the llm api cost\"),\n`DPn0DPBDCiB` (Sorti-confirmed \"Guides,\" AI video character-swap tool,\n19 AI-specific hashtags).\n\n---"
+      }
+    },
+    {
+      "name": "Cybersecurity",
+      "spec": {
+        "Definition": "Ethical hacking, information security, and professional\ncyber-safety awareness — distinct from consumer device-safety tips.",
+        "Include when": "content is professional/career-framed infosec content,\nor explicit cyber-crime/security awareness education (including public\nPSAs from an official source).",
+        "Exclude when": "content is a one-off consumer device-safety trick (e.g.,\nhidden-camera detection) with no professional/awareness-campaign framing\n(→ Technology / Gadgets).",
+        "Primary evidence": "caption naming infosec-specific terms or an\nidentifiable awareness-campaign source (e.g., police department).",
+        "Positive signals": "\"cybersecurity,\" \"ethical hacking,\" \"cyber\nawareness,\" named security agency/campaign.",
+        "Negative signals": "a single consumer gadget-safety tip with no\nprofessional/campaign framing.",
+        "Confusable categories": "Technology / Gadgets (professional infosec vs.\nconsumer device-safety tips — this is the sharpest version of that\nboundary).",
+        "Deterministic tie-break rule": "is this professional/career infosec\ncontent or an identifiable awareness campaign? → Cybersecurity. Is it a\nsingle \"here's a gadget trick to protect yourself\" tip? → Technology /\nGadgets.",
+        "Language handling": "Sorti-confirmed example (`DNvP4fYXmkb`) is\nEnglish-caption despite a Tamil Nadu Police source — no special handling\nrequired, the test is about content professionalism/framing, not\nlanguage.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit infosec/security-awareness\nlanguage, not just the word \"safety.\"",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "content that's genuinely ambiguous between\nprofessional and consumer framing — flag.",
+        "Positive examples": "`DXr868mk2Qk` (\"#cybersecurity #cyberawareness\"),\n`DNvP4fYXmkb` (Sorti-confirmed \"Security,\" TN Police cyber-crime\nawareness PSA).\n\n---"
+      }
+    },
+    {
+      "name": "Technology / Gadgets",
+      "spec": {
+        "Definition": "Consumer-facing tech tips, software tricks, gadget\nreviews/unboxings, and office-software how-tos — for end users, not\ndevelopers.",
+        "Include when": "content is a practical tech tip, gadget review, or\noffice-software trick aimed at a general consumer, not a developer\naudience.",
+        "Exclude when": "content is developer-audience (→ Programming/Web\nDev/DevOps cluster) or professional-infosec-framed (→ Cybersecurity).",
+        "Primary evidence": "caption/hashtags naming a consumer device, office\ntool, or general \"how to\" tech trick.",
+        "Positive signals": "\"Windows,\" \"Android,\" \"iPhone,\" \"Excel,\" gadget\nnames, \"how to\" framing aimed at general users.",
+        "Negative signals": "developer-specific terms (React, Docker, SQL);\nprofessional-infosec framing.",
+        "Confusable categories": "the entire Programming/Web Dev/DevOps/Data\nScience cluster (resolved by the audience/depth test), Cybersecurity\n(resolved above).",
+        "Deterministic tie-break rule": "is this written for \"anyone with a\ncomputer/phone\" or \"developers specifically\"? → Technology / Gadgets for\nthe former.",
+        "Language handling": "no special handling — Tanglish consumer-tech tips\n(`DXEjLfPB6As`, Outlook folder rules) are fully in-scope.",
+        "Format vs. subject rule": "subject (audience-defined).",
+        "Minimum evidence requirement": "a named consumer device/tool/trick.",
+        "General fallback interaction": "the confirmed historical failure case —\n`DXEjLfPB6As` was dumped to General despite unambiguous Outlook-tip\ncontent; this category should catch that pattern directly.",
+        "Review trigger": "content that's ambiguous between consumer and\ndeveloper audience (e.g., a \"how websites work\" explainer that could be\neither) — flag.",
+        "Positive examples": "`DS7vC8zFd20` (\"XCOPY Windows Command Prompt\"),\n`DZxXEeBBeiA` (\"BULB CCTV CAMERA Unboxing\"), `DO2zK_ojcfE` (hidden-camera\ndetection, Tamil), `DXEjLfPB6As` (Sorti-confirmed \"Guides,\" Outlook\nfolder-rules tip, Tanglish).\n\n---"
+      }
+    },
+    {
+      "name": "Career / Jobs & Hiring",
+      "spec": {
+        "Definition": "Finding, changing, or getting hired for a job — the\nsearch/discovery/opportunity side, not performance once hired.",
+        "Include when": "content is about job openings, hiring drives, career-\nchange strategy, or career-path roadmaps.",
+        "Exclude when": "content is about on-the-job growth/culture (→ Career\nGrowth & Workplace) or resume/interview-performance specifics (→ Resume &\nInterview Preparation).",
+        "Primary evidence": "caption naming job openings, hiring, or career-path\nlanguage.",
+        "Positive signals": "\"jobs,\" \"hiring,\" \"internship,\" \"placement,\"\n\"vacancy,\" \"get hired.\"",
+        "Negative signals": "on-the-job culture/advice language with no\nsearch/discovery framing.",
+        "Confusable categories": "Career Growth & Workplace, Resume & Interview\nPreparation, AI Tools & Generative AI (when \"get hired\" outcome-framing\nwraps a tech/AI subject).",
+        "Deterministic tie-break rule": "is the content about *finding/landing*\nan opportunity? → Career / Jobs & Hiring. Is it about *performing well*\nonce you have an interview lined up? → Resume & Interview Preparation.\nIs it about life *after* being hired? → Career Growth & Workplace. Does\noutcome-framing (\"get hired,\" \"land the job\") wrap a tech/AI subject\n(Sorti-confirmed pattern, `DQeNW_cDNdF`)? → Career / Jobs & Hiring wins\nover the tech subject.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject (intent-defined: search/discovery).",
+        "Minimum evidence requirement": "explicit job-search/hiring language.",
+        "General fallback interaction": "uncommon — job-search content tends to\ncarry clear signal.",
+        "Review trigger": "content genuinely ambiguous between this and Career\nGrowth & Workplace (e.g., \"how I changed careers\" could be either) — flag\nif the search-vs-growth framing isn't clear.",
+        "Positive examples": "`Dcga0EbyQht` (\"VLSI Design Internship Alert\"),\n`DW6TaklveYy` (\"placement preparation roadmap\"), `DQeNW_cDNdF`\n(Sorti-confirmed \"Guides,\" AI/tech projects framed around \"get hired\").\n\n---"
+      }
+    },
+    {
+      "name": "Career Growth & Workplace",
+      "spec": {
+        "Definition": "On-the-job advice — promotions, workplace culture, soft\nskills, professional communication — once already employed.",
+        "Include when": "content is substantive workplace/career advice with no\ncomedic/meme framing.",
+        "Exclude when": "the content is explicitly comedy/meme-framed, even if\nset in an office (→ Comedy & Entertainment (General), see Rule A below);\nor is about finding a job rather than growing in one (→ Career / Jobs &\nHiring).",
+        "Primary evidence": "substantive advice content, no joke/meme framing.",
+        "Positive signals": "\"salary negotiation,\" \"promotion,\" \"workplace\nculture,\" \"professional communication,\" concrete actionable claims.",
+        "Negative signals": "explicit \"meme,\" \"relatable,\" \"funny,\" \"tag your\ncolleague\" framing with no actual advice content — this is the single\nmost important negative signal for this category (see Rule A).",
+        "Confusable categories": "Comedy & Entertainment (General) (the\nconfirmed dominant confusion pattern — 5 instances across this project's\nevidence base), Career / Jobs & Hiring.",
+        "Deterministic tie-break rule": "**Rule A, formalized**: if the\ndescription or caption explicitly frames the content as comedy/meme/joke\n(the words \"comedy,\" \"meme,\" \"funny,\" \"relatable,\" or a \"tag someone\"\ncall-to-action with no actual advice), Comedy & Entertainment (General)\nwins regardless of the office/work subject matter. If the content gives\ngenuine, actionable workplace/HR/professional-communication guidance with\nno joke framing, this category wins. Concrete boundary examples:\n`DZIV16bNCH_` (Sorti: \"relatable work escalation meme\") → Comedy, not this\ncategory, despite being entirely about office life. `DNx1xKIZmap`\n(Sorti-confirmed, actual OOO-email-writing technique) → this category,\nbecause it's genuine advice, not a joke.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject, but requires a format check\n(non-comedic) as a gate — see Rule A.",
+        "Minimum evidence requirement": "at least one concrete, actionable\nworkplace claim, not just an office setting.",
+        "General fallback interaction": "the confirmed historical failure case —\nmultiple Sorti-validated examples (`DP09KRskgPj`, `DNx1xKIZmap`,\n`DauYntJjqTX`) were dumped to General despite substantive workplace\ncontent.",
+        "Review trigger": "content where the comedy-vs-advice framing is\ngenuinely unclear — flag rather than guess.",
+        "Positive examples": "`Dci6N3Ihs9T` (\"5 things you're saying wrong on\nyour offer call\"), `DWwdG4dCToL` (EOD update email format),\n`DNx1xKIZmap` (Sorti-confirmed \"Communication,\" OOO email tip),\n`DP09KRskgPj` (Sorti-confirmed \"Employee Rights,\" Supreme Court\nworkplace-accident ruling — imperfect fit, documented taxonomy gap,\nrouted here as best-available).\n\n---"
+      }
+    },
+    {
+      "name": "Resume & Interview Preparation",
+      "spec": {
+        "Definition": "Building a resume/CV and performing well in an interview\n— the preparation/execution side, not the search/discovery side.",
+        "Include when": "content covers resume-writing, ATS optimization, or\ninterview conduct/technique.",
+        "Exclude when": "content is about finding the opportunity in the first\nplace (→ Career / Jobs & Hiring) or is specifically technical\ncoding-interview/DSA content (→ Java / Programming Interview Prep).",
+        "Primary evidence": "caption naming resume/CV/interview-technique\nlanguage.",
+        "Positive signals": "\"resume,\" \"CV,\" \"ATS,\" \"interview tips,\" \"self\nintroduction,\" \"notice period.\"",
+        "Negative signals": "job-search/discovery language with no\nresume/interview-specific content; pure technical DSA content (→ Java /\nProgramming Interview Prep).",
+        "Confusable categories": "Career / Jobs & Hiring, Java / Programming\nInterview Prep.",
+        "Deterministic tie-break rule": "is the subject the resume document or\ninterview *conduct* generally? → this category. Is it a specific\ntechnical coding question? → Java / Programming Interview Prep.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit resume/CV/interview-technique\nlanguage.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "promotional/ad-framed interview-coaching content\n(e.g., `DRIYZbjE9n3`, a paid coaching ad) — still routes here since the\nactual subject matter is genuine interview Q&A despite the promotional\nwrapper; flag only if the ad has zero real content behind it.",
+        "Positive examples": "`DctIpkWRFyV` (\"mistakes in your resume\"),\n`DIlt7ewCpIQ` (\"ATS compliant resume tips\"), `DSNCYc7j7ej` (\"how to\nintroduce yourself in an interview\").\n\n---"
+      }
+    },
+    {
+      "name": "Freelancing & Entrepreneurship",
+      "spec": {
+        "Definition": "Running a business, side hustle, or freelance practice —\nincome from self-employment, not from a job.",
+        "Include when": "content is about business ownership, client work, or\nincome generated outside employment.",
+        "Exclude when": "content is about employment (any Career category) or is\npurely a business-tool software tip with no business-strategy content\n(→ Technology / Gadgets).",
+        "Primary evidence": "caption naming freelancing/business-ownership\nlanguage.",
+        "Positive signals": "\"freelancing,\" \"entrepreneur,\" \"startup,\" \"side\nhustle,\" client/pricing language tied to one's own business.",
+        "Negative signals": "employment-framed content; pure software-tool\npromotion.",
+        "Confusable categories": "Career / Jobs & Hiring (self-employment vs.\nemployment), AI Tools & Generative AI (when a business-strategy Reel\nhappens to mention an AI product incidentally).",
+        "Deterministic tie-break rule": "is income/business ownership the\nsubject, or is a specific AI/tech product the subject? → whichever is\nactually being explained wins.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit self-employment/business-\nownership language.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "content ambiguous between career-transition-into-\nfreelancing (borderline with Career / Jobs & Hiring) — flag if unclear.",
+        "Positive examples": "`DbnTnNKyqB5` (\"stuck at ₹1L and can't break into\n₹3–5L\"), `DSSfntXDwlu` (business-location advice), `DYhT0nOv4aI`\n(Sorti-adjacent, food-business-vs-software-job satire).\n\n---"
+      }
+    },
+    {
+      "name": "Personal Finance & Money",
+      "spec": {
+        "Definition": "Managing personal money — investing, saving, salary,\ntaxes, government schemes, EMI/loans, and personal-impact economic news.",
+        "Include when": "content covers personal financial mechanics (interest,\nrisk, budgeting, government benefit schemes) regardless of whether it's\nframed around property, insurance, or general economy.",
+        "Exclude when": "content is about business revenue/operations rather\nthan personal money (→ Freelancing & Entrepreneurship).",
+        "Primary evidence": "caption naming specific financial mechanics or\nschemes.",
+        "Positive signals": "\"EMI,\" \"PF,\" \"EPFO,\" \"mutual fund,\" \"SIP,\" named\ngovernment schemes, \"rupee,\" interest-rate discussion.",
+        "Negative signals": "business-operations language with no personal-money\nangle.",
+        "Confusable categories": "Freelancing & Entrepreneurship.",
+        "Deterministic tie-break rule": "is the money being discussed personal\nsavings/income/benefit, or business revenue? → Personal Finance for the\nformer. Is the content framed around a property/asset but actually about\nfinancial risk mechanics (the confirmed `DSWYU72EnME` EMI-vs-Rent\npattern)? → Personal Finance wins over any property-specific framing.",
+        "Language handling": "fully validated for Tamil-script content\n(`Dcqkq5nP8To`, government health-insurance scheme, Sorti-confirmed).",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit personal-financial-mechanics\nlanguage.",
+        "General fallback interaction": "the confirmed historical failure case —\n`Dcqkq5nP8To` (Tamil govt insurance scheme) was dumped to General despite\nclear, substantive content.",
+        "Review trigger": "content ambiguous between personal finance and a\ngenuine property-listing (if the latter ever recurs at volume, it may\njustify revisiting the merged Real Estate category — not decided here).",
+        "Positive examples": "`DakvCUaT9LE` (PF withdrawal, Tamil),\n`DSWYU72EnME` (Sorti-confirmed \"Personal Finance,\" EMI-vs-rent analysis),\n`Dcqkq5nP8To` (Sorti-confirmed \"Health Insurance,\" CM government scheme).\n\n---"
+      }
+    },
+    {
+      "name": "Education & Exams",
+      "spec": {
+        "Definition": "Academic exam preparation and general-knowledge/trivia\ncontent.",
+        "Include when": "content covers exam prep (UPSC/TNPSC/NEET/JEE-style) or\ngeneral-knowledge facts.",
+        "Exclude when": "content is career-exam-adjacent but not academic (e.g.,\ncoding-interview prep → Java / Programming Interview Prep).",
+        "Primary evidence": "caption naming specific exams or presenting a\ndiscrete factual claim.",
+        "Positive signals": "named exams, \"student,\" \"exam,\" \"did you know,\"\nhistorical/scientific fact framing.",
+        "Negative signals": "professional/career-interview framing (routes\nelsewhere).",
+        "Confusable categories": "Java / Programming Interview Prep (academic vs.\nprofessional-technical exam prep).",
+        "Deterministic tie-break rule": "is this an academic exam or a general\nfact, or a professional/technical interview? → academic/GK wins here;\nprofessional-technical → Java/Programming Interview Prep.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a named exam or a specific factual\nclaim.",
+        "General fallback interaction": "uncommon, though this category is\nthinner (n=11 pre-merge) and should be watched for over-triggering on\nvague \"did you know\" content with no real fact — require the fact itself\nto be concrete.",
+        "Review trigger": "promotional academic-service ads with thin real\ncontent (e.g., `DJOj-Igstk7`, an exam-paper-writing service ad) — flag as\ngenuinely ambiguous with General rather than forcing a category.",
+        "Positive examples": "`Cv_j7wFoXGu` (Moon/space facts), `DVW4OiyDM0C`\n(Apollo 11 historical fact).\n\n---"
+      }
+    },
+    {
+      "name": "English & Language Learning",
+      "spec": {
+        "Definition": "Learning/practicing English (or another language) —\ngrammar, vocabulary, spoken-English coaching, pronunciation.",
+        "Include when": "content is explicitly about language-learning/practice.",
+        "Exclude when": "N/A — this is a fairly clean, low-confusion category.",
+        "Primary evidence": "caption naming language-learning terms.",
+        "Positive signals": "\"English,\" \"grammar,\" \"vocabulary,\" \"spoken\nEnglish,\" \"pronunciation,\" \"conversation starter.\"",
+        "Negative signals": "none specifically identified — this category has\nshown no confirmed confusion pattern across the evidence base.",
+        "Confusable categories": "none strongly confirmed; theoretically Education\n& Exams if language-learning is framed as exam-prep (e.g., IELTS) — not\nobserved in evidence, flagged as a theoretical edge case only.",
+        "Deterministic tie-break rule": "N/A (no confirmed conflict).",
+        "Language handling": "this category is inherently about language, so\nTamil/Tanglish content teaching English is fully in-scope and expected.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit language-learning framing.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "none specifically identified.",
+        "Positive examples": "`DVtfeTMiYrm` (\"the easiest conversation\nstarter\"), `DcHPLl2T5u_` (speaking-practice platform), `DD6pDsLpY3U`\n(pronunciation tips).\n\n---"
+      }
+    },
+    {
+      "name": "Fitness & Workout",
+      "spec": {
+        "Definition": "Exercise, gym, bodybuilding, and workout programming —\nexercise-specific content.",
+        "Include when": "content is specifically about performing exercise.",
+        "Exclude when": "content is general nutrition/wellness/skincare with no\nworkout component (→ Health & Wellness).",
+        "Primary evidence": "caption naming specific exercises or workout\nroutines.",
+        "Positive signals": "\"workout,\" \"gym,\" \"cardio,\" specific exercise names.",
+        "Negative signals": "nutrition/diet/skincare language with no exercise\ncomponent.",
+        "Confusable categories": "Health & Wellness (Rule F, formalized above and\nbelow).",
+        "Deterministic tie-break rule": "**Rule F**: is the content about\nperforming exercise? → Fitness & Workout. Is it about nutrition, general\nwellness, skincare, or health-safety with no exercise component (the\nSorti-confirmed `DRr21bmEp-n` airfryer-safety and `DOGOafpk4WD`\nnutrition/skincare cases)? → Health & Wellness.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit exercise/workout term.",
+        "General fallback interaction": "the thinnest confirmed positive case in\nthis project (`C-uDWddPdpZ`, \"King of workout 👑\" — only 3 words) still\ncorrectly resolved here per Sorti confirmation, showing this category can\nbe assigned confidently even from very thin text, given the one strong\nword present.",
+        "Review trigger": "content mixing workout and heavy nutrition content in\nroughly equal measure — flag if genuinely 50/50.",
+        "Positive examples": "`DE36MITzqjk` (dumbbell forearm workout),\n`DZL8CU_hasF` (20-minute cardio), `C-uDWddPdpZ` (Sorti-confirmed\n\"Fitness\").\n\n---"
+      }
+    },
+    {
+      "name": "Health & Wellness",
+      "spec": {
+        "Definition": "General health, nutrition, skincare-as-health, mental\nhealth, and non-exercise-specific wellness.",
+        "Include when": "content covers nutrition, general wellness, skincare,\nor health/safety information with no workout component.",
+        "Exclude when": "content is exercise-specific (→ Fitness & Workout).",
+        "Primary evidence": "caption naming nutrition/wellness/health-safety\nterms.",
+        "Positive signals": "\"nutrition,\" \"skincare,\" \"health,\" \"safety\" (in a\nhealth context), \"doctor,\" \"recovery,\" \"sleep.\"",
+        "Negative signals": "exercise-specific language with no wellness/\nnutrition angle.",
+        "Confusable categories": "Fitness & Workout (Rule F, see above).",
+        "Deterministic tie-break rule": "see Rule F under Fitness & Workout.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit nutrition/wellness/health-\nsafety language.",
+        "General fallback interaction": "this category shows the strongest\nconfirmed track record of correcting General-dump errors — `DRr21bmEp-n`\nand `DOGOafpk4WD` were both Viral-dumped despite substantive, specific\nhealth content (a 2,090-character skincare/nutrition listicle in the\nlatter case — the single most substantive item found anywhere in the\nSorti evidence base, still dumped to a non-topic bucket).",
+        "Review trigger": "content genuinely 50/50 between nutrition and workout\n— flag.",
+        "Positive examples": "`DH84V4ZtQBA` (rest/recovery advice),\n`DNiUi9ctJgX` (nuts/seeds nutrition), `DRr21bmEp-n` (Sorti-confirmed\n\"Safety,\" air-fryer health content), `DOGOafpk4WD` (Sorti-confirmed\n\"Nutrition,\" 20-point skin/diet guide).\n\n---"
+      }
+    },
+    {
+      "name": "Fashion & Beauty",
+      "spec": {
+        "Definition": "Personal style, makeup, clothing, and general beauty\ncontent — excluding hair-specific content.",
+        "Include when": "content covers outfit/style/makeup/general beauty.",
+        "Exclude when": "content is specifically hair-focused (→ Hair &\nGrooming, Rule H).",
+        "Primary evidence": "caption naming clothing/style/makeup terms.",
+        "Positive signals": "\"outfit,\" \"style,\" \"makeup,\" clothing brand/item\nnames.",
+        "Negative signals": "hair-specific terms with no broader outfit/style\ncontent (→ Hair & Grooming).",
+        "Confusable categories": "Hair & Grooming (Rule H, formalized below), Art\n& Creativity (Rule L — style-as-craft content vs. general fashion\ncontent).",
+        "Deterministic tie-break rule": "**Rule H**: is the content specifically\nabout a haircut/hair-styling technique/product? → Hair & Grooming. Is it\nabout clothing/outfit/general style/makeup? → Fashion & Beauty.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit clothing/style/beauty language.",
+        "General fallback interaction": "uncommon in the evidence base so far.",
+        "Review trigger": "content mixing hair and outfit content roughly\nequally — flag.",
+        "Positive examples": "`DGnraBLPt0q` (\"having all colors for next drop\n#oldmoney #outfits\"), `Dc74NFLvZpX` (Sorti-confirmed \"Professional\nStyle\"), `Cqf7cI2Dz_N` (Nita Ambani fashion-event coverage).\n\n---"
+      }
+    },
+    {
+      "name": "Hair & Grooming",
+      "spec": {
+        "Definition": "Haircut, hair-styling technique, and hair-care product\ncontent — a distinct, recognizable niche (barber/stylist-creator content)\nfrom general fashion.",
+        "Include when": "content is specifically about hair (cutting, styling,\ncare products, growth).",
+        "Exclude when": "hair is mentioned only incidentally within a broader\noutfit/style Reel (→ Fashion & Beauty).",
+        "Primary evidence": "caption/account naming hair-specific terms or\ntechniques.",
+        "Positive signals": "\"haircut,\" \"hair care,\" \"hair growth,\" barber/\nstylist-shaped account names.",
+        "Negative signals": "hair mentioned only in passing within outfit\ncontent.",
+        "Confusable categories": "Fashion & Beauty (Rule H).",
+        "Deterministic tie-break rule": "see Rule H under Fashion & Beauty.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit hair-specific content, not just\na hair-adjacent hashtag.",
+        "General fallback interaction": "this category has a documented,\ngenuinely unresolved evidentiary question — `CkgNJ92OwA8`'s caption is\npure emoji + platform hashtags with **zero hair-related text**; the\nSorti-confirmed \"Hair Care\" result may be explained by the account name\n(`nr.cutz`, a plausible barber-account signal) rather than per-Reel\ncontent analysis. This is flagged, not resolved — a text-only classifier\nwithout account-history profiling would likely and correctly send this\nspecific case to General or Uncategorized, which is an acceptable, honest\noutcome, not a failure to replicate.",
+        "Review trigger": "near-empty caption where the only signal is an\naccount name suggestive of a hair-content creator — flag for account-\nlevel review rather than a confident automatic assignment, since this\nproject has not validated account-based inference as reliable.",
+        "Positive examples": "`DbPufOZN_wH` (\"30 Days Better Hair\"),\n`DO-QLHmDzw4` (hair-growth home remedy), `DDcEYCfzS8E` (Sorti-confirmed\n\"Hair Care,\" curl-routine tutorial — this one has substantive hair-care\ntext in the caption, unlike `CkgNJ92OwA8`).\n\n---"
+      }
+    },
+    {
+      "name": "Astrology / Spirituality",
+      "spec": {
+        "Definition": "Temples, astrology/horoscope content, meditation, and\nfestival greetings/cultural-spiritual traditions.",
+        "Include when": "content's dominant framing is spiritual meaning,\nbelief, or cultural-religious tradition.",
+        "Exclude when": "the dominant framing is visit-logistics (booking, travel\nplanning) even when the destination is religious (→ Travel & Places, Rule\nG).",
+        "Primary evidence": "caption naming spiritual/religious/astrological\nterms with experience or meaning-centered framing.",
+        "Positive signals": "\"temple,\" \"spiritual,\" \"astrology,\" \"meditation,\"\nnamed festivals, \"aura,\" \"zodiac.\"",
+        "Negative signals": "explicit booking/logistics language (\"how to book,\"\n\"visit,\" \"travel tips\") dominating the framing.",
+        "Confusable categories": "Travel & Places (Rule G, formalized below).",
+        "Deterministic tie-break rule": "**Rule G**: is the framing about\n*visiting* (booking, logistics, \"how to get there\")? → Travel & Places.\nIs it about spiritual *meaning*, belief, or experience? → Astrology /\nSpirituality. Confirmed boundary case: `DHaQyzkCQlr` (Auroville) — Sorti's\nown title/tags foreground \"guide,\" \"booking,\" \"travel tips\" over\n\"spiritual,\" so this resolves to Travel & Places despite the genuinely\nspiritual subject matter of the place itself.",
+        "Language handling": "fully validated for Tamil-script temple/\nspirituality content.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "explicit spiritual/religious/\nastrological language with experience-framing.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "content genuinely balanced between visit-logistics\nand spiritual-meaning framing — flag if the split is close.",
+        "Positive examples": "`Dax5XgaT0Vb` (Arunachaleswara Temple visit\ndescription), `DY4f1lKTkjX` (Om Namah Shivaya chant content), `DaZ7NKypXOD`\n(Pachaiamman temple, sacred-place framing).\n\n---"
+      }
+    },
+    {
+      "name": "Life Hacks & Productivity Tips",
+      "spec": {
+        "Definition": "Everyday-life shortcuts, budget upgrades, time-saving\ntricks — not career/workplace-specific, not tech-specific.",
+        "Include when": "content is a general life-logistics tip with no\ncareer, tech, or health-specific domain.",
+        "Exclude when": "the tip is domain-specific (career → Career Growth &\nWorkplace; tech → Technology / Gadgets; health → Health & Wellness).",
+        "Primary evidence": "caption presenting a general logistics/shortcut tip.",
+        "Positive signals": "\"hack,\" \"tip,\" \"shortcut\" applied to everyday\nlogistics with no other domain claim.",
+        "Negative signals": "any domain-specific framing (career, tech, health)\n— routes elsewhere instead.",
+        "Confusable categories": "nearly every other tip/guide-shaped category —\nthis is structurally the \"residual\" tips bucket and must be applied\nnarrowly to avoid becoming a second General.",
+        "Deterministic tie-break rule": "if the tip has ANY identifiable domain\n(career, tech, health, finance), that domain category wins. This category\napplies only when the tip is genuinely domain-agnostic (budget travel\nlogistics, room organization, generic time management).",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "a mixture — nominally a subject (life\nlogistics) but defined partly by exclusion of other domains, closer to a\nresidual category than a clean subject. **Flagged explicitly**: this is\nthe one RETAIN category where the \"watch, don't eliminate yet\" caveat\nfrom the taxonomy synthesis applies most directly — monitor whether it's\nabsorbing content that actually belongs elsewhere.",
+        "Minimum evidence requirement": "a concrete, domain-agnostic logistics\ntip, not a vague \"here's a hack\" claim with no specifics.",
+        "General fallback interaction": "this category and General are the two\nclosest neighbors in the whole taxonomy — the test is whether a *specific,\nactionable* tip exists (→ this category) versus no specific content at all\n(→ General).",
+        "Review trigger": "any assignment here where the tip could also\nplausibly belong to a domain-specific category — flag for a second look,\nsince this category's boundary is the least sharply evidenced in the\nwhole taxonomy.",
+        "Positive examples": "`DW9GOMGkwiN` (\"Wonderla Chennai has a 9AM ticket\nrule\"), `DbN62IgpLdQ` (\"Most student rooms don't need expensive\nfurniture\").\n\n---"
+      }
+    },
+    {
+      "name": "Art & Creativity",
+      "spec": {
+        "Definition": "Visual creative craft — drawing, painting, digital\nillustration, graphic/UI/motion design, and creative advertising — as a\nskill or process, not as a coded product, a fashion choice, or a movie's\nsubject matter.",
+        "Include when": "the creative-production process itself is the semantic\nsubject (making the art, designing the campaign, the illustration\ntechnique).",
+        "Exclude when": "the content is a coded website (→ Web Development, Rule\nL), a clothing/style choice (→ Fashion & Beauty, Rule L), or a film/movie\nas consumed content rather than as a design-process subject (→ Movies &\nEntertainment, Rule L).",
+        "Primary evidence": "caption naming a creative tool/technique/process\n(Procreate, graphic design, UI/UX, VFX, advertising campaign creation).",
+        "Positive signals": "\"Procreate,\" \"illustration,\" \"graphic design,\"\n\"UI/UX designer,\" \"3D art,\" \"VFX,\" \"ad campaign,\" \"made with [creative\ntool].\"",
+        "Negative signals": "the presence of a song/movie/product as the\n*consumed subject* with no creative-process framing.",
+        "Confusable categories": "**Rule L, formalized**: (a) vs. Web\nDevelopment — a website is Web Development if the code/site itself is\nthe deliverable; it's Art & Creativity only if the framing is purely\nvisual/aesthetic design with no implementation. (b) vs. Fashion & Beauty\n— clothing/style choices are Fashion & Beauty; the *design/creation* of a\ngarment or a styling *business* could lean Art & Creativity if\ncraft-process-framed, otherwise Fashion & Beauty. (c) vs. Movies &\nEntertainment — a movie/song is Movies/Music if consumed as entertainment;\nit's Art & Creativity only when the caption's actual subject is the\n*making* of a visual piece that happens to use a song as a soundtrack\n(the confirmed `DcggOh9vP0j` \"Made with Procreate\" tell — a fan-art\nillustration set to a song is Art & Creativity, not Music & Songs).",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject (the creative process specifically,\nnot the output's other characteristics).",
+        "Minimum evidence requirement": "an explicit creative-tool/process\nmention, not just an aesthetically pleasing video.",
+        "General fallback interaction": "uncommon, though thin (n=10) — watch\nalongside Life Hacks as a smaller RETAIN category.",
+        "Review trigger": "content where the \"made with X\" tell is absent and\nthe creative-vs-consumed distinction is genuinely unclear.",
+        "Positive examples": "`CsDNXdyrM7_` (\"become a UI/UX Designer or\nGraphic Designer\"), `DXyz-llhDCR` (Procreate illustration),\n`DcggOh9vP0j` (Sorti-confirmed \"Digital Art,\" Procreate fan-art set to a\nsong), `CkNGg1wAp-F` (Sorti-confirmed \"Advertising,\" Honda stop-motion ad\ncampaign — documented imperfect-but-workable fit for a taxonomy gap).\n\n---"
+      }
+    },
+    {
+      "name": "Food & Recipes",
+      "spec": {
+        "Definition": "Cooking, recipes, ingredients, and dish preparation.",
+        "Include when": "content presents a recipe or food-preparation process.",
+        "Exclude when": "N/A — this is a clean, low-confusion category\nthroughout the evidence base.",
+        "Primary evidence": "caption naming a dish/ingredients/cooking process.",
+        "Positive signals": "dish names, ingredient lists, \"recipe,\" cooking\nverbs.",
+        "Negative signals": "none specifically confirmed as problematic.",
+        "Confusable categories": "none strongly confirmed (the one historical\nfailure — a chutney recipe filed under Automobile — was a lexical\n\"oil\"-word collision in an earlier TF-IDF experiment, not a genuine\ntaxonomy boundary issue).",
+        "Deterministic tie-break rule": "N/A.",
+        "Language handling": "fully validated for Tamil-script recipe content.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a named dish or ingredient list.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "none specifically identified.",
+        "Positive examples": "`DL_hHG1JG-A` (\"Viral egg Chutney recipe\"),\n`DRjomoND9UX` (Chicken 65 recipe, Tamil), `DOxE9kijG_y` (Barbie Chutney —\nthe confirmed historical legacy miscategorization case, correctly\nFood & Recipes).\n\n---"
+      }
+    },
+    {
+      "name": "Travel & Places",
+      "spec": {
+        "Definition": "Visit-logistics and inspiration for a specific place —\nguide-style content oriented toward \"go here, here's how.\"",
+        "Include when": "the framing is about visiting/traveling to a specific\nnamed place, with logistics or inspirational-guide framing.",
+        "Exclude when": "the place is primarily a transactional local-business\ncontext (→ Chennai / Local Tamil Nadu Information, Rule below) or the\ndominant framing is spiritual meaning over visit-logistics (→ Astrology /\nSpirituality, Rule G).",
+        "Primary evidence": "caption naming a specific destination with\nvisit/guide framing.",
+        "Positive signals": "named place + \"visit,\" \"travel guide,\" \"how to\nbook,\" \"trip plan.\"",
+        "Negative signals": "transactional shop/service framing (even if\nlocation-specific); dominant spiritual-meaning framing over logistics.",
+        "Confusable categories": "Astrology / Spirituality (Rule G), Chennai /\nLocal Tamil Nadu Information (the informational/transactional vs.\ninspirational-guide distinction — genuinely the least sharply resolved\nboundary in this taxonomy; two structurally similar Sorti examples\n[`DUN1MJvicT8`, trek guide → Travel; `DareP3XPMnS`, landmark guide →\nChennai/TN Local] were given different verdicts on similarly-shaped\ncontent in earlier project work, and that inconsistency is acknowledged\nhere rather than hidden).",
+        "Deterministic tie-break rule": "is the content a shop/service/business\nlisting (contact info, prices, \"visit our store\")? → Chennai / Local\nTamil Nadu Information. Is it a landmark/trek/sightseeing visit-guide with\nno specific commercial transaction? → Travel & Places, **even when the\nplace is within Tamil Nadu** — this revises the earlier, less consistent\nguidance and gives a single clean rule: commercial/transactional intent\nis the deciding factor, not whether the place happens to be local.",
+        "Language handling": "no special handling needed.",
+        "General fallback interaction": "the confirmed historical failure case —\n`DTRMF-sgb1P` (\"I've been in China for 1 month...\") was dumped to General\ndespite explicit country/experience framing.",
+        "Review trigger": "content genuinely ambiguous on the\ncommercial-vs-guide axis — flag.",
+        "Positive examples": "`DU23-ECkZzk` (Kolukkumalai hill-station tourism),\n`DLPYB9NBtwA` (Sorti-confirmed \"Landmarks,\" Vishnu statue temple),\n`DU__8ZiEz4X` (trip-planning content).\n\n---"
+      }
+    },
+    {
+      "name": "Chennai / Local Tamil Nadu Information",
+      "spec": {
+        "Definition": "Transactional or informational content specifically about\na Tamil Nadu locality — local businesses, services, civic information —\nregardless of topic domain.",
+        "Include when": "the content is a local business/service listing or\nregion-specific civic/informational content within Tamil Nadu.",
+        "Exclude when": "the content is landmark/sightseeing visit-guide framing\nwith no commercial/civic transaction (→ Travel & Places, see the revised\nrule above).",
+        "Primary evidence": "caption naming a specific TN locality with\ntransactional/informational (not tourism-guide) framing.",
+        "Positive signals": "shop/service names, contact info, prices tied to a\nspecific TN location, civic/local-news framing.",
+        "Negative signals": "pure tourism/sightseeing framing with no\ncommercial/civic content (→ Travel & Places).",
+        "Confusable categories": "Travel & Places (see the revised rule above),\nTechnology / Gadgets (when the local business happens to sell tech\nproducts — the confirmed `Ct_7Rn3pJyl` case, a laptop retailer's price\nlist; Sorti's corrected category is \"Computers,\" which supports the\n*product identification* without contradicting the *shop-listing* framing\nthat makes this the right category — both signals agree the content is\nabout a computer retailer, and the shop-listing framing determines the\ncategory here over the product-type framing).",
+        "Deterministic tie-break rule": "is this primarily a shop/service\nlisting (even if the products sold are tech/fashion/etc.)? → this\ncategory wins over the product-type category. Is it a landmark visit with\nno commercial content? → Travel & Places.",
+        "Language handling": "fully validated for Tamil/Tanglish content — this\nis one of the most consistently Tamil-language categories in the whole\ntaxonomy.",
+        "Format vs. subject rule": "subject (locality + transactional intent).",
+        "Minimum evidence requirement": "a named TN locality with\ntransactional/civic content, not just a Tamil Nadu place-name mention.",
+        "General fallback interaction": "the confirmed historical failure\ncases — `DcRExgGvK9l` (parking-safety essay, though this now more\nprecisely routes to Road Safety per the revised automotive-cluster\ndecision) and `DOuqddWk1A0` (used-bike-buying tips, routes to Automobile\n/ Vehicle Review) — both were General-dumped despite clear TN-local or\ndomain-specific content; illustrates that \"Tamil + General\" dumps often\nresolve to a *domain* category, not automatically to this local-info\ncategory, and the domain-specific rule should be checked first.",
+        "Review trigger": "content ambiguous between this category and a\ndomain-specific category when both a strong local-business signal and a\nstrong domain signal are present — flag if genuinely close.",
+        "Positive examples": "`DcT-Tc6zFOH` (\"Best price for scrap items...\nCoimbatore\"), `DElruECzhHA` (Chennai traffic commentary), `Ct_7Rn3pJyl`\n(Sorti-confirmed, corrected, \"Computers\" — laptop retailer price list).\n\n---"
+      }
+    },
+    {
+      "name": "Automobile / Vehicle Review",
+      "spec": {
+        "Definition": "Vehicle reviews, purchase/ownership advice, and\nmaintenance — the buying/owning side of automotive content.",
+        "Include when": "content is about reviewing, buying, or maintaining a\nvehicle.",
+        "Exclude when": "content is about driving *technique* or road-safety\npractice rather than the vehicle itself (→ Road Safety / Driving Tips,\nRule K).",
+        "Primary evidence": "caption naming a specific vehicle/purchase/\nmaintenance topic.",
+        "Positive signals": "vehicle model names, \"review,\" \"maintenance,\"\n\"buying tips,\" \"PDI check.\"",
+        "Negative signals": "driving-technique/road-safety language with no\npurchase/ownership framing.",
+        "Confusable categories": "Road Safety / Driving Tips (Rule K, formalized\nbelow).",
+        "Deterministic tie-break rule": "**Rule K**: is the subject the vehicle\nitself (purchase, review, maintenance)? → Automobile / Vehicle Review. Is\nthe subject driving *behavior* (technique, safety, parking, traffic\nconduct)? → Road Safety / Driving Tips. Confirmed example: `DOuqddWk1A0`\n(used-bike buying-safety checklist) → this category, since the subject is\nthe purchase decision, not driving technique.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit vehicle-purchase/review/\nmaintenance term.",
+        "General fallback interaction": "the confirmed historical failure case —\n`DOuqddWk1A0` (Tamil, used-bike-buying tips) was dumped to General.",
+        "Review trigger": "content mixing purchase-advice and driving-technique\nroughly equally — flag.",
+        "Positive examples": "`DZNC8VVArVx` (bike review), `DMfWC8BRNlA` (car\nservice scam awareness), `DbIHJNuSYkD` (PDI check tip), `DOuqddWk1A0`\n(Sorti-confirmed \"Buying Tips,\" used-bike safety checklist).\n\n---"
+      }
+    },
+    {
+      "name": "Road Safety / Driving Tips",
+      "spec": {
+        "Definition": "Driving technique, parking conduct, traffic behavior, and\nroad safety — the behavioral/technique side of automotive content,\ndistinct from vehicle purchase/ownership.",
+        "Include when": "content teaches or discusses driving technique, road\nsafety, or traffic/parking conduct.",
+        "Exclude when": "content is about the vehicle as a purchase/ownership\ndecision with no driving-technique framing (→ Automobile / Vehicle\nReview, Rule K).",
+        "Primary evidence": "caption naming specific driving/road-safety\npractices.",
+        "Positive signals": "\"driving tips,\" \"road safety,\" \"parking,\" \"traffic,\"\ndriving-lesson framing.",
+        "Negative signals": "purchase/review/maintenance language with no\ndriving-behavior component.",
+        "Confusable categories": "Automobile / Vehicle Review (Rule K).",
+        "Deterministic tie-break rule": "see Rule K under Automobile / Vehicle\nReview.",
+        "Language handling": "fully validated for Tamil-script driving-safety\ncontent — two independent, clean confirmations\n(`DcRExgGvK9l`, `DVhwFtHD56S`).",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit driving-technique/road-\nsafety term.",
+        "General fallback interaction": "the confirmed historical failure\ncase — `DcRExgGvK9l` (a substantial Tamil-language parking-etiquette\nessay) was dumped to General despite explicit English road-safety\nhashtags.",
+        "Review trigger": "content mixing purchase-advice and driving-technique\n— flag (same boundary as Automobile / Vehicle Review, checked from either\nside).",
+        "Positive examples": "`DVhwFtHD56S` (Sorti-confirmed \"Driving,\" driving-\nlesson content, Tamil), `DcRExgGvK9l` (Sorti-confirmed \"Driving,\"\nparking-safety essay, Tamil).\n\n---"
+      }
+    },
+    {
+      "name": "Movies & Entertainment",
+      "spec": {
+        "Definition": "General movie/TV/streaming content — Bollywood/\nHollywood/international films, OTT content, and genuine media-nostalgia —\nnot specifically Tamil-actor-tribute-framed.",
+        "Include when": "content is about film/TV content generally, with no\nspecific-actor fan-tribute intent.",
+        "Exclude when": "content is a named-Tamil-actor/film fan-tribute or edit\n(→ Kollywood / Tamil Movie Fan Edits, Rule C).",
+        "Primary evidence": "caption naming film/TV titles or genres with\ngeneral-content framing.",
+        "Positive signals": "film/show titles, \"movie,\" general entertainment\nframing with no specific-actor tribute intent.",
+        "Negative signals": "explicit named-Tamil-actor fan-tribute/edit framing\n(→ Kollywood).",
+        "Confusable categories": "Kollywood / Tamil Movie Fan Edits (Rule C,\nformalized below), Art & Creativity (Rule L, when the content's actual\nsubject is a creative-production process rather than consumed\nentertainment).",
+        "Deterministic tie-break rule": "**Rule C**: is a specific Tamil actor\nor film the explicit subject with fan-tribute/edit framing? → Kollywood.\nIs the content general film/TV compilation, review, or nostalgia with no\nspecific-actor tribute intent? → Movies & Entertainment. Confirmed\nexamples: `Dax3vhvPSAj` (Sorti-confirmed \"Movies,\" Evil Dead ticket\nanecdote) → this category; `Cy8bSyYxybV` (Sorti-confirmed \"Movies,\" but\nexplicitly a Thalapathy Vijay edit) → **should actually route to\nKollywood** per Rule C despite Sorti's own \"Movies\" label — this is a\nconfirmed case where Sorti's bare category disagrees with the correct\nTROY routing, and the description/content (named actor + edit framing)\nwins per the description-beats-category principle.",
+        "Language handling": "no special handling needed — the Tamil/non-Tamil\ndistinction here is about actor-tribute framing, not caption language.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit film/TV title or clear\nentertainment-content framing.",
+        "General fallback interaction": "the confirmed historical failure\ncase — `C_kXvS6oZu2` (car-movie-themed edit) was dumped to General.",
+        "Review trigger": "content where actor-tribute intent is genuinely\nambiguous — flag (see `CrpNvDKvTTv` under Kollywood below, a confirmed\ngenuinely-unresolved case).",
+        "Positive examples": "`DVTuTvrE-0l` (anime/Vinland Saga content),\n`DSNFHa5ktw0` (Sushant Singh Rajput, non-Tamil actor, quote tribute),\n`Dax3vhvPSAj` (Sorti-confirmed \"Movies,\" Evil Dead), `C_kXvS6oZu2`\n(Sorti-confirmed \"Movies,\" car-movie edit).\n\n---"
+      }
+    },
+    {
+      "name": "Kollywood / Tamil Movie Fan Edits",
+      "spec": {
+        "Definition": "Content centered on a specific named Tamil actor or film,\nwhere the primary intent is fan tribute, nostalgia, or an edit\ncelebrating that actor/film specifically.",
+        "Include when": "a specific Tamil actor or film is named and the framing\nis tribute/edit-oriented.",
+        "Exclude when": "the Tamil actor/film reference is incidental to a joke/\nmeme (→ Tamil Comedy & Memes, Rule I) or the content is general\nfilm/TV with no specific-actor tribute intent (→ Movies & Entertainment,\nRule C).",
+        "Primary evidence": "a named Tamil actor/film with tribute/edit framing.",
+        "Positive signals": "named actors (Vijay, Ajith, Rajini, Dhanush,\nSuriya, Kamal), named films, \"edit,\" \"BGM,\" fan-page account style.",
+        "Negative signals": "the same named-actor content used explicitly as\njoke/meme material rather than tribute (→ Tamil Comedy & Memes).",
+        "Confusable categories": "Movies & Entertainment (Rule C), Tamil Comedy &\nMemes (Rule I), Motivation & Self Improvement (a confirmed, genuinely\nunresolved case: `CrpNvDKvTTv` — a motivational quote overlaid on a\nSimbu/STR actor-image edit. Sorti itself categorized this \"Motivation,\"\nprioritizing the literal quote text over the actor-tribute visual\nframing. **This is documented as an unresolved boundary, not\nforce-resolved** — an edit-creator account posting an actor image with a\ngeneric inspirational quote genuinely straddles both categories, and no\nconfident automatic rule is claimed here).",
+        "Deterministic tie-break rule": "see Rule C (vs. Movies) and Rule I (vs.\nTamil Comedy). Vs. Motivation: no confident automatic rule — flag for\nreview when a named-actor edit carries primarily generic\nmotivational/quote text with no other tribute-specific signal.",
+        "Language handling": "fan-tribute captions are often English even when\nthe subject is a Tamil actor — the actor's name, not the caption\nlanguage, is the trigger.",
+        "Format vs. subject rule": "a mixture — subject (a specific actor/film)\nplus intent (tribute, not joke or generic entertainment).",
+        "Minimum evidence requirement": "a named Tamil actor or film with\ntribute/edit framing, not just a Tamil-sounding hashtag.",
+        "General fallback interaction": "uncommon — named-actor content tends to\ncarry clear signal.",
+        "Review trigger": "see the `CrpNvDKvTTv`-shaped case above — generic\nmotivational quote + actor-image edit, flag rather than force.",
+        "Positive examples": "`CiMBgNqJTbT` (Thalapathy Vijay edit), `Dbu5dEeRmCf`\n(explicitly named \"kollywood movie\" recommendation), `Cy8bSyYxybV`\n(Sorti-labeled \"Movies\" but correctly Kollywood per Rule C — Thalapathy\nVijay edit).\n\n---"
+      }
+    },
+    {
+      "name": "Tamil Comedy & Memes",
+      "spec": {
+        "Definition": "Tamil-language, Tanglish, or explicitly Tamil-culturally-\nframed comedic/meme content — not triggered by a Tamil-adjacent account\nname or hashtag alone.",
+        "Include when": "the content itself (caption text, not just the account\nor a single hashtag) contains Tamil script, genuine Tanglish, or explicit\nTamil-cultural-comedic framing (named Tamil comedians, Tamil meme-format\nreferences).",
+        "Exclude when": "**Rule I, formalized**: the only Tamil signal is the\naccount name being Tamil-sounding, or a single generic `#tamil` hashtag\nwith no Tamil content in the caption body itself (→ Comedy & Entertainment\n(General) instead).",
+        "Primary evidence": "genuine Tamil-script/Tanglish text in the caption,\nor an explicit Tamil-comedic-culture reference (a named Tamil comedian, a\nrecognized Tamil meme template).",
+        "Positive signals": "Tamil script; Tanglish words in the caption body\n(not just hashtags); named Tamil comedians (Vadivelu, Santhanam);\nrecognized Tamil meme-template references.",
+        "Negative signals": "Tamil-sounding account name with English-only\ncaption and no Tamil-cultural comedic reference; a single generic\n`#tamil` hashtag with otherwise language-agnostic joke content.",
+        "Confusable categories": "Comedy & Entertainment (General) (Rule I),\nKollywood / Tamil Movie Fan Edits (the joke-vs-tribute distinction,\ncarried over unchanged from the original taxonomy proposal: fan\ntribute/nostalgia → Kollywood; joke/meme using movie footage as the\nvehicle → this category).",
+        "Deterministic tie-break rule": "**Rule I**: does the caption body itself\n(not just account/hashtags) contain Tamil script, genuine Tanglish, or a\nnamed Tamil-comedy cultural reference? → Tamil Comedy & Memes. Is the\nTamil signal confined to the account name or a single generic hashtag? →\nComedy & Entertainment (General).",
+        "Language handling": "this is the category most directly defined by\nlanguage/cultural content — the whole point of Rule I is ensuring it\ntriggers on genuine content, not superficial labeling.",
+        "Format vs. subject rule": "intent (comedic) + language/cultural\nidentity — a mixture.",
+        "Minimum evidence requirement": "genuine Tamil-script/Tanglish caption\ntext or a specific named cultural reference — explicitly *not* an account\nname or single hashtag alone.",
+        "General fallback interaction": "the confirmed weak spot in this\nproject's own prior classifier build — meme-format content is inherently\ncaption-light (the joke lives in the video), and an over-eager\nthin-caption→General rule was found to systematically misroute genuine\nTamil Comedy content (0% precision/recall in one measured build). **This\ncategory must not be penalized for having a short caption** if the\navailable text (even a few words) contains genuine Tamil/Tanglish/\ncultural-comedy signal — length alone is not disqualifying here the way\nit might be for a more text-dependent category.",
+        "Review trigger": "content with a Tamil-sounding account but ambiguous\ncaption-body content — flag rather than defaulting either direction.",
+        "Positive examples": "`Cr40JwUt6XT` (Vadivelu meme references),\n`Cjh6swBjoHn` (\"mokka joke\" — Tamil slang for a corny joke),\n`DGX4fxyyShg` (Sorti-confirmed \"Comedy,\" genuine Tanglish \"share panuga\nmudinjcha vara\" in the caption body).\n\n---"
+      }
+    },
+    {
+      "name": "Comedy & Entertainment (General)",
+      "spec": {
+        "Definition": "Language-agnostic comedic/meme content — the non-\nTamil-specific sibling of Tamil Comedy & Memes, and the format-winner over\nCareer Growth & Workplace when content is explicitly joke/meme-framed\n(Rule A).",
+        "Include when": "content is comedy/meme-format with no Tamil-cultural\nsignal in the caption body (Rule I) — including workplace/career-subject\njokes (Rule A) and tech/programming-subject jokes (the confirmed\n\"Engineering-means-comedy\" pattern).",
+        "Exclude when": "genuine Tamil-cultural comedic content is present (→\nTamil Comedy & Memes, Rule I); or the content is substantive advice with\nno joke framing (→ the relevant subject-specific category, per Rule A).",
+        "Primary evidence": "explicit comedy/meme/joke framing in caption or\ndescription, regardless of the subject the joke is about.",
+        "Positive signals": "\"meme,\" \"funny,\" \"relatable,\" \"tag someone,\" a\npunchline structure with no actual advice/instructional content.",
+        "Negative signals": "genuine Tamil-cultural markers (→ Tamil Comedy);\nsubstantive non-comedic advice content (→ the subject category).",
+        "Confusable categories": "Tamil Comedy & Memes (Rule I), Career Growth &\nWorkplace (Rule A), Programming / Coding General (the same joke-framing\noverride applies — a \"software engineers be like\" meme is this category,\nnot Programming, per the confirmed `DFhlIM9yVPv`/`DMcUIE7N8nN` pattern\nwhere Sorti's own \"Engineering\" label was self-contradicted by its own\n\"comedy meme\" description).",
+        "Deterministic tie-break rule": "see Rule A (vs. Workplace) and Rule I\n(vs. Tamil Comedy). General principle, generalized beyond just Workplace:\n**whenever a subject-specific category's content is explicitly\njoke/meme-framed per the caption or description, this category wins over\nthe subject category** — confirmed now across Workplace, Programming, and\nIT-career subjects specifically (5+ instances).",
+        "Language handling": "the absence of Tamil-cultural signal is itself the\ndefining test against Tamil Comedy (Rule I) — otherwise no special\nhandling.",
+        "Format vs. subject rule": "format/intent (comedic), explicitly\noverriding subject-matter categorization when the two conflict.",
+        "Minimum evidence requirement": "explicit joke/meme framing, not just a\nlight or informal tone.",
+        "General fallback interaction": "distinct from General — this category\nrequires positive comedic-framing evidence, whereas General requires the\nabsence of any category's evidence. A thin, non-comedic, non-specific\ncaption is General; a thin but explicitly joke-framed caption is this\ncategory.",
+        "Review trigger": "content where comedic framing is ambiguous (dry humor,\nsarcasm not clearly marked) — flag rather than guess.",
+        "Positive examples": "`DB9TQX0PX_G` (dog-comedy joke), `CqU-oQfIpy1`\n(developer meme), `Cjt4TyYAbvr` (Sorti-confirmed \"Humor,\" \"keep smiling\"),\n`DZIV16bNCH_` (Sorti-confirmed \"Humor,\" work-escalation meme —\nmetadata-only-caption case, flagged separately in the extraction audit),\n`DFhlIM9yVPv` (Sorti-confirmed \"Engineering\" per Sorti's own inconsistent\nlabel, but description explicitly says \"a humorous Instagram reel about\nsoftware engineers\" — this category wins per the general override\nprinciple).\n\n---"
+      }
+    },
+    {
+      "name": "Music & Songs",
+      "spec": {
+        "Definition": "Content primarily about a song, singer, or musical\nperformance — not a movie scene or a visual-art piece that happens to use\na song as its soundtrack.",
+        "Include when": "the song/singer/music itself is the explicit subject.",
+        "Exclude when": "a movie scene/dialogue is the subject and the song is\nincidental (→ Kollywood or Movies & Entertainment); or a visual-art\ncreation process is the subject and the song is merely the soundtrack (→\nArt & Creativity, Rule L, the \"Made with Procreate\" tell).",
+        "Primary evidence": "caption naming a song/singer/composer with\nmusic-centered framing.",
+        "Positive signals": "song titles, singer/composer names, \"song,\"\n\"music,\" tribute-to-a-musician framing.",
+        "Negative signals": "explicit creative-tool mentions (\"Made with\nProcreate,\" \"illustration,\" \"drawing\") indicating the actual subject is\nvisual art (→ Art & Creativity).",
+        "Confusable categories": "Kollywood / Tamil Movie Fan Edits (song-as-\nmovie-content vs. song-as-subject), Art & Creativity (Rule L).",
+        "Deterministic tie-break rule": "is the song/singer/composer the\nexplicit subject? → Music & Songs. Is a movie scene/dialogue the subject\nwith the song incidental? → Kollywood or Movies. Is a visual-art creation\nprocess the subject with the song as soundtrack (confirmed\n`DcggOh9vP0j`)? → Art & Creativity.",
+        "Language handling": "fully validated for Tamil-script music-tribute\ncontent.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a named song/singer/composer.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "content where music and visual-art framing are both\npresent with no clear \"made with X\" tell — flag.",
+        "Positive examples": "`DZM_fpPNUqy` (Tamil romantic-song info),\n`Cq7L39QoekW` (A.R. Rahman tribute), `DZdFwe-IJgr` (\"underrated songs\" —\nArijit Singh).\n\n---"
+      }
+    },
+    {
+      "name": "Gaming",
+      "spec": {
+        "Definition": "Video games — gameplay, gaming hardware, and gaming\nculture.",
+        "Include when": "content is explicitly about video games or gaming\nhardware/setup.",
+        "Exclude when": "N/A — clean, low-confusion category throughout the\nevidence base.",
+        "Primary evidence": "caption naming a specific game title or gaming\nhardware.",
+        "Positive signals": "game titles, \"gaming PC,\" \"GPU,\" console names.",
+        "Negative signals": "none specifically confirmed.",
+        "Confusable categories": "none strongly confirmed.",
+        "Deterministic tie-break rule": "N/A.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a named game or gaming-specific\nhardware term.",
+        "General fallback interaction": "uncommon.",
+        "Review trigger": "none specifically identified.",
+        "Positive examples": "`DPNmUECjMKs` (\"@valorant\"), `DE2uEwkOkOB` (Need\nfor Speed), `DJUo3Idviod` (gaming PC/GPU setup).\n\n---"
+      }
+    },
+    {
+      "name": "Motivation & Self Improvement",
+      "spec": {
+        "Definition": "Content whose actual subject is mindset, habits, or\npersonal growth itself — not marketing/product copy wrapped in\naspirational language, and not content anchored to a specific named\nrelationship.",
+        "Include when": "the content genuinely discusses mindset, discipline,\nhabit-formation, or personal growth as its own subject.",
+        "Exclude when": "**the critical exclusion rule, confirmed as the single\nbiggest source of false-positives in this project**: if the core subject\nis a specific skill, product, or tutorial (a website, an AI tool, a\nfitness plan) described in aspirational marketing language, that content\nbelongs to *its actual subject's* category, not here (the confirmed\ncoconut-water-website case: `DdEmuLrpVtF`). Also excluded: content\nanchored to a specific relationship/person (→ Relationships & Friendship,\nRule B).",
+        "Primary evidence": "genuine mindset/growth language with no specific\nproduct or relationship anchor.",
+        "Positive signals": "\"discipline,\" \"habits,\" \"mindset,\" \"self\nimprovement,\" \"Kaizen,\" generic growth-framework language.",
+        "Negative signals": "a named product/tool/website described in\naspirational language (→ the product's actual category); a specific\nnamed relationship/person as the anchor (→ Relationships & Friendship).",
+        "Confusable categories": "AI Tools & Generative AI (the product-\nexclusion rule), Relationships & Friendship (Rule B), Kollywood (the\nunresolved `CrpNvDKvTTv` case, documented under Kollywood above).",
+        "Deterministic tie-break rule": "**Rule B**: is the content anchored to\na *specific* relationship/person? → Relationships & Friendship. Is it\ngeneral mindset/growth language with no specific relational anchor? →\nMotivation & Self Improvement. Confirmed example: `Crswjlvu6Lv`\n(\"seeing your true value through someone who loves you\") → Relationships,\ndespite carrying motivational-sounding tags, because a specific\nrelational anchor is present.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject, with a specific, well-evidenced\nexclusion (see above).",
+        "Minimum evidence requirement": "genuine mindset/growth content with no\noverriding product or relationship anchor.",
+        "General fallback interaction": "uncommon — motivational content tends\nto carry recognizable, if generic, language.",
+        "Review trigger": "any case where marketing/product language and\nmindset language are both present and the \"which is the actual subject\"\ncall is close — flag (the `DdEmuLrpVtF` case was itself only correctly\nresolved via a specific anti-magnetism rule, and even then landed\ncorrectly only some of the time across different classifier attempts in\nthis project — this category has a genuinely confirmed history of being\nmis-triggered, so err toward review over confident assignment when\nproduct/marketing language is present).",
+        "Positive examples": "`DciuKgaNTej` (\"Top 6 Secret Methods... Kaizen\"),\n`DCuW6CroKut` (\"sometimes life asks us to let go\"), `DDKG9JiTAXV`\n(Sorti-confirmed \"Motivation,\" entrepreneurship/success content with zero\nAI despite its legacy AI Tools label).\n\n---"
+      }
+    },
+    {
+      "name": "Relationships & Friendship",
+      "spec": {
+        "Definition": "Content anchored to a specific relationship, friendship,\nor person — romantic, familial, or platonic.",
+        "Include when": "a specific relationship or person is the subject,\nincluding attraction/dating psychology content.",
+        "Exclude when": "the content is generic mindset/growth language with no\nspecific relational anchor (→ Motivation & Self Improvement, Rule B).",
+        "Primary evidence": "caption naming or clearly describing a specific\nrelationship/person.",
+        "Positive signals": "\"husband,\" \"friend,\" \"dating,\" specific relational\nscenarios, attraction-psychology framing.",
+        "Negative signals": "generic growth/mindset language with no relational\nanchor.",
+        "Confusable categories": "Motivation & Self Improvement (Rule B).",
+        "Deterministic tie-break rule": "see Rule B under Motivation & Self\nImprovement.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "a specific relational anchor.",
+        "General fallback interaction": "the confirmed historical failure\ncases — `CnMug1cjX9e` (filed under Animals & Pets, zero animal content,\nconfirmed relationship/self-love content) and `Cpfyc8oOzIx` (a\nfather-loss story, General-dumped despite substantial emotional\nnarrative content — notably, this contradicts an earlier hypothesis in\nthis project that such personal-narrative content might be \"earned\nGeneral\"; the Sorti-confirmed correction is to route it here instead).",
+        "Review trigger": "content genuinely balanced between relational-anchor\nand generic-mindset framing — flag.",
+        "Positive examples": "`DQGiukokjUz` (husband/socks relationship story),\n`Crswjlvu6Lv` (Sorti-confirmed \"Relationships,\" \"seeing your true value\"\nquote), `CnMug1cjX9e` (Sorti-confirmed \"Relationships,\" reciprocation/\nself-love content — corrected from a zero-evidence Animals & Pets\nlegacy label).\n\n---"
+      }
+    },
+    {
+      "name": "Animals & Pets",
+      "spec": {
+        "Definition": "Content where an animal is the actual subject.",
+        "Include when": "an animal (pet, wildlife) is the explicit content\nsubject.",
+        "Exclude when": "an animal is mentioned only incidentally, or the\naccount/hashtag suggests animal content but the actual caption has no\nanimal subject (two confirmed zero-evidence legacy-label cases exist —\nsee below).",
+        "Primary evidence": "caption/visual content centered on a specific\nanimal.",
+        "Positive signals": "named pets, animal breed/species mentions, pet-care\nframing.",
+        "Negative signals": "complete absence of animal-related text despite the\nlegacy category label — this is a confirmed, repeated legacy-classifier\nfailure mode for this specific category, not a hypothetical risk.",
+        "Confusable categories": "none structurally — the confirmed failures\nwere legacy-classifier errors (content routed here with zero supporting\nevidence), not a genuine boundary confusion with a neighboring category.",
+        "Deterministic tie-break rule": "N/A — the issue here is not a boundary\ndispute but historical mislabeling; going forward, this category should\nsimply require an explicit animal subject, full stop.",
+        "Language handling": "no special handling needed.",
+        "Format vs. subject rule": "subject.",
+        "Minimum evidence requirement": "an explicit animal subject — the bar\nshould be stricter here than most categories given the confirmed\nzero-evidence legacy-mislabeling pattern.",
+        "General fallback interaction": "uncommon for genuine animal content;\nthe failure mode here runs the *other* direction (content wrongly placed\nhere that should be elsewhere), not content wrongly excluded from here.",
+        "Review trigger": "any assignment to this category where the\nsupporting evidence is thin — given the confirmed history of zero-\nevidence mislabeling, require a slightly higher evidence bar here than\nthe default.",
+        "Positive examples": "`Cz9EKderhaH` (\"SAPPHIE & DADDY COMPILATION,\" dog\ncontent), `DZ5vAGEoVTs` (dog breeder/rescue content), `DQJaZi0kZ7z`\n(dog content). **Confirmed negative examples** (legacy-mislabeled, zero\nanimal content): `CnMug1cjX9e` (Sorti-confirmed \"Relationships\"),\n`C2zo-YjyDEU` (Sorti-confirmed \"Landmarks,\" island/tourism content).\n\n---"
+      }
+    }
+  ],
+  "retired_categories": [
+    "Viral Clips / Trending Reels",
+    "Sports"
+  ],
+  "routing_states": {
+    "NORMAL_CANONICAL_CLASSIFICATION": {
+      "routing_reason": "canonical_match"
+    },
+    "TRUE_GENERAL": {
+      "category": "General / Relatable & Miscellaneous Content",
+      "routing_reason": "true_general",
+      "needs_review_default": false
+    },
+    "TAXONOMY_GAP_FALLBACK": {
+      "category": "General / Relatable & Miscellaneous Content",
+      "routing_reason": "taxonomy_gap",
+      "needs_review_default": true
+    },
+    "UNCATEGORIZED": {
+      "category": "Uncategorized / No Content Available",
+      "routing_reason": "evidence_absent"
+    }
+  },
+  "taxonomy_gap_registry": {
+    "sports": "Specific sports subject with no canonical category",
+    "general_engineering": "Specific non-software engineering subject with no canonical category",
+    "dance": "Specific dance/performance subject with no canonical category",
+    "novelty_product": "Specific novelty/toy product subject with no canonical category"
+  },
+  "implementation_notes": [
+    "Exactly one visible category output per Reel.",
+    "taxonomy_gap records must never be used as positive General training examples.",
+    "General has no positive signal set; it is selected only after evidence exhaustion.",
+    "Viral Clips / Trending Reels and Sports are retired and must not appear as classifier outputs."
+  ]
+}
