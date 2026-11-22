@@ -143,7 +143,7 @@ def gallery_metadata(url: str) -> dict:
         # when accessed without a logged-in session. GraphQL is a separate
         # supported gallery-dl API mode and is the no-cookie path we test first.
         "--option",
-        "extractor.instagram.api=graphql",
+        "api=graphql",
         "--range",
         "1",
         "--dump-json",
