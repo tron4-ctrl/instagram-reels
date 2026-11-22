@@ -45,6 +45,7 @@ def test_cover_hash_is_deterministic():
 
 def test_production_baseline():
     recs = json.loads((ROOT / "data" / "reels.json").read_text(encoding="utf-8"))
-    assert len(recs) == 3646
-    assert len({r["sc"] for r in recs}) == 3646
+    meta = json.loads((ROOT / "data" / "meta.json").read_text(encoding="utf-8"))
+    assert len(recs) == meta["reel_count"]
+    assert len({r["sc"] for r in recs}) == meta["reel_count"]
     assert all(re.fullmatch(r"[A-Za-z0-9_-]+", r["sc"]) for r in recs)

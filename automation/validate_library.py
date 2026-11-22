@@ -51,8 +51,34 @@ for r in records:
     if r.get("cov") == 1:
         assert r.get("dn") == hash_counts[r.get("sha")], f"duplicate-cover count mismatch: {r['sc']}"
 
+# The Post library is validated independently. Reel data, metadata and covers
+# keep their original strict checks above.
+POSTS_DATA = ROOT / "data" / "posts.json"
+POST_COVERS = ROOT / "post_covers"
+posts = json.loads(POSTS_DATA.read_text("utf-8")) if POSTS_DATA.exists() else []
+assert isinstance(posts, list), "posts.json must contain a JSON array"
+post_shortcodes = [r.get("sc") for r in posts]
+assert len(post_shortcodes) == len(set(post_shortcodes)), "duplicate Post shortcodes"
+assert all(re.fullmatch(r"[A-Za-z0-9_-]+", r.get("sc", "")) for r in posts)
+assert all(r.get("u") == f"https://www.instagram.com/p/{r.get('sc')}/" for r in posts)
+assert all(r.get("c") for r in posts), "uncategorized Post"
+assert all(r.get("kind") in {"image", "carousel", "video"} for r in posts), "invalid Post kind"
+for r in posts:
+    assert r.get("cov") == 1, f"Post preview unavailable: {r.get('sc')}"
+    assert r.get("img") == f"{r.get('sc')}.jpg", f"non-deterministic Post preview filename: {r.get('sc')}"
+    p = POST_COVERS / r["img"]
+    assert p.exists(), f"missing Post preview: {r.get('sc')}"
+    digest = hashlib.sha256(p.read_bytes()).hexdigest()
+    assert digest == r.get("sha"), f"Post preview hash mismatch: {r.get('sc')}"
+    assert re.fullmatch(r"[0-9a-f]{64}", str(r.get("sha", ""))), f"invalid Post SHA-256: {r.get('sc')}"
+
+post_hash_counts = Counter(r.get("sha") for r in posts if r.get("cov") == 1)
+for r in posts:
+    assert r.get("dn") == post_hash_counts[r.get("sha")], f"Post duplicate-preview count mismatch: {r.get('sc')}"
+
 print(json.dumps({
     "total": len(records),
+    "post_total": len(posts),
     "unique_shortcodes": len(set(shorts)),
     "categories": len(counts),
     "category_counts": dict(sorted(counts.items())),

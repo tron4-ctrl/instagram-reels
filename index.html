@@ -67,6 +67,16 @@ header.header-hidden{opacity:0;transform:translateY(calc(-100% - 12px));pointer-
 .stat.c-unique .num{color:#60a5fa;}
 
 .controls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.media-tabs{display:flex;gap:8px;align-items:center;margin:10px 0 12px;}
+.media-tab{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--muted);
+  border-radius:999px;padding:8px 18px;font-size:.82rem;font-weight:750;cursor:pointer;transition:all .16s ease;}
+.media-tab:hover{border-color:var(--accent);color:var(--text);}
+.media-tab.active{border-color:transparent;background:linear-gradient(110deg,#e1306c,#833ab4);color:#fff;
+  box-shadow:0 5px 16px rgba(225,48,108,.2);}
+.type-tag{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:6px;
+  padding:2px 6px;font-size:.61rem;font-weight:800;letter-spacing:.045em;color:#e9a5ce;background:rgba(131,58,180,.12);}
+@media(max-width:640px){.media-tabs{gap:6px;margin:7px 0 9px;}.media-tab{padding:7px 13px;font-size:.76rem;}}
+
 #search{flex:1;min-width:220px;padding:11px 16px;border-radius:12px;border:1px solid var(--border);
   background:var(--panel2);color:var(--text);font-size:0.92rem;transition:border-color .15s,box-shadow .15s;}
 #search::placeholder{color:var(--muted2);}
@@ -362,26 +372,31 @@ header .header-inner{padding-bottom:11px;}
     <div class="title-row">
       <div class="brand-copy">
         <h1><img src="assets/troy-logo.png" alt="TROY"></h1>
-        <div class="subtitle">A curated, searchable archive of your saved Instagram Reels.</div>
+        <div class="subtitle">Your personal, searchable Instagram library.</div>
       </div>
-      <div class="total-badge" aria-label="3,646 Reels in library" role="status">
-        <span class="total-num" id="totalReelsCount">3,646 Reels</span>
+      <div class="total-badge" aria-label="Instagram library item count" role="status">
+        <span class="total-num" id="totalMediaCount">Loading library…</span>
       </div>
     </div>
+    <nav class="media-tabs" aria-label="Choose library content">
+      <button class="media-tab active" type="button" data-media="all" aria-pressed="true">All</button>
+      <button class="media-tab" type="button" data-media="reels" aria-pressed="false">Reels</button>
+      <button class="media-tab" type="button" data-media="posts" aria-pressed="false">Posts</button>
+    </nav>
     <div class="controls-row primary-controls">
       <div class="field search-field">
-        <label class="sr-only" for="search">Search Reels</label>
-        <input id="search" type="text" placeholder="Search title, description, creator, category, or shortcode…" autocomplete="off">
+        <label class="sr-only" for="search">Search Instagram library</label>
+        <input id="search" type="text" placeholder="Search title, caption, creator, category, or shortcode…" autocomplete="off">
       </div>
       <div class="field category-field">
         <label class="sr-only" for="category">Category</label>
-        <select id="category" aria-label="Select Reel category">
+        <select id="category" aria-label="Select category">
           <option value="All">All Categories</option>
         </select>
       </div>
       <div class="field sort-field">
-        <label class="sr-only" for="sort">Sort Reels</label>
-        <select id="sort" aria-label="Sort Reels">
+        <label class="sr-only" for="sort">Sort library items</label>
+        <select id="sort" aria-label="Sort library items">
           <option value="default">Sort: Default</option>
           <option value="cat_az">Category A–Z</option>
           <option value="cat_za">Category Z–A</option>
@@ -396,7 +411,7 @@ header .header-inner{padding-bottom:11px;}
       <button class="btn-clear" id="clearFilters" type="button">Clear filters</button>
     </div>
     <div class="meta-row">
-      <div id="resultCount" aria-hidden="true">3,646 Reels</div>
+      <div id="resultCount" aria-hidden="true">Loading library…</div>
       <div class="chips" id="activeChips"></div>
     </div>
   </div>
@@ -405,23 +420,26 @@ header .header-inner{padding-bottom:11px;}
 <main>
   <div id="groupwrap" style="display:none;"></div>
   <div id="grid"></div>
-  <div id="loadmore-wrap"><button id="loadmore">Load more Reels</button></div>
+  <div id="loadmore-wrap"><button id="loadmore">Load more</button></div>
   <div id="empty">
     <div class="icon">&#128269;</div>
-    <div class="e-title">No Reels match your filters</div>
+    <div class="e-title">No items match your filters</div>
     <div>Try a different search term or clear your filters.</div>
   </div>
 </main>
 
-<footer>TROY · Your Personal Reel Library</footer>
+<footer>TROY · Your Personal Instagram Library</footer>
 
 <button id="backtop" title="Back to top" aria-label="Back to top">&#8593;</button>
 
 <script>
 const PAGE_SIZE = 60;
+let ALL_REC = [];
+let REEL_REC = [];
+let POST_REC = [];
 let REC = [];
 let META = {};
-let state = { cover: 'all', cat: 'All', q: '', sort: 'default' };
+let state = { media: 'all', cover: 'all', cat: 'All', q: '', sort: 'default' };
 let shown = 0;
 let filtered = [];
 
@@ -430,7 +448,9 @@ function escapeHtml(s){
 }
 
 function imgSrc(r){
-  return r && r.cov === 1 && r.img ? ('reel_covers/' + encodeURIComponent(r.img)) : null;
+  if(!r || r.cov !== 1 || !r.img) return null;
+  const folder = r.type === 'post' ? 'post_covers/' : 'reel_covers/';
+  return folder + encodeURIComponent(r.img);
 }
 
 function passesCover(r, coverState){
@@ -447,9 +467,11 @@ function searchMatch(r, q){
   return !q || [r.t,r.d,r.c,r.a,r.sc].some(v => v && String(v).toLowerCase().includes(q));
 }
 
-function filteredWithoutCategory(){
-  const q=state.q.trim().toLowerCase();
-  return REC.filter(r => passesCover(r,state.cover) && searchMatch(r,q));
+function recordsForMedia(media){
+  if(media === 'reels') return REEL_REC.slice();
+  if(media === 'posts') return POST_REC.slice();
+  // Keep the combined feed chronological, without changing the source JSON files.
+  return ALL_REC.slice().sort((a,b) => String(b.ingested_at || b.dt || '').localeCompare(String(a.ingested_at || a.dt || '')));
 }
 
 function renderCategorySelect(){
@@ -465,13 +487,18 @@ function renderCategorySelect(){
   state.cat=sel.value;
 }
 
+function filteredWithoutCategory(){
+  const q=state.q.trim().toLowerCase();
+  return REC.filter(r => passesCover(r,state.cover) && searchMatch(r,q));
+}
+
 function sortRecords(list){
   const arr=list.slice();
   const dateVal=r=>r.dt||r.ingested_at||'';
   const byDateDesc=(a,b)=>String(dateVal(b)).localeCompare(String(dateVal(a)));
   switch(state.sort){
     case 'cat_az': arr.sort((a,b)=>(a.c||'').localeCompare(b.c||'')||(a.t||'').localeCompare(b.t||'')); break;
-    case 'cat_za': arr.sort((a,b)=>(b.c||'').localeCompare(a.c||'')||(a.t||'').localeCompare(b.t||'')); break;
+    case 'cat_za': arr.sort((a,b)=>(b.c||'').localeCompare(a.c||'')||(b.t||'').localeCompare(a.t||'')); break;
     case 'title_az': arr.sort((a,b)=>(a.t||'').localeCompare(b.t||'')); break;
     case 'title_za': arr.sort((a,b)=>(b.t||'').localeCompare(a.t||'')); break;
     case 'creator_az': arr.sort((a,b)=>(a.a||'').localeCompare(b.a||'')); break;
@@ -484,6 +511,9 @@ function sortRecords(list){
 }
 
 function applyFilters(){
+  // Rebuild category options first so a tab switch cannot leave a stale category
+  // selected when the newly selected library does not contain it.
+  renderCategorySelect();
   const q=state.q.trim().toLowerCase();
   filtered=sortRecords(REC.filter(r => passesCover(r,state.cover) && (state.cat==='All'||r.c===state.cat) && searchMatch(r,q)));
   shown=0;
@@ -499,16 +529,16 @@ function applyFilters(){
     document.getElementById('groupwrap').style.display='none';
     renderMore();
   }
-  renderCategorySelect();
   updateChrome();
 }
 
 function cardHtml(r){
   const src=imgSrc(r);
   const img=src ? '<img loading="lazy" decoding="async" src="'+src+'" alt="'+escapeHtml(r.t)+'" onerror="this.closest(\'.thumb\').classList.add(\'image-error\')">'
-                : '<div class="noimg"><span class="icon">📷</span>Cover unavailable</div>';
-  const dup=r.dn>1 ? '<span class="dupbadge">Same cover · '+r.dn+'</span>' : '';
-  return '<article class="card"><div class="thumb">'+img+'<span class="badge">'+escapeHtml(r.c)+'</span>'+dup+'</div><div class="body"><p class="card-title">'+escapeHtml(r.t)+'</p><p class="desc">'+escapeHtml(r.d)+'</p><div class="meta"><span>'+escapeHtml(r.a?'@'+r.a:'')+'</span><span class="sc">'+escapeHtml(r.sc)+'</span></div><a class="link" href="'+escapeHtml(r.u)+'" target="_blank" rel="noopener noreferrer">▶ Open on Instagram</a></div></article>';
+                : '<div class="noimg"><span class="icon">📷</span>Preview unavailable</div>';
+  const dup=r.dn>1 ? '<span class="dupbadge">Same preview · '+r.dn+'</span>' : '';
+  const typeLabel = r.type === 'post' ? (r.kind === 'carousel' ? 'POST · CAROUSEL' : 'POST') : 'REEL';
+  return '<article class="card"><div class="thumb">'+img+'<span class="badge">'+escapeHtml(r.c)+'</span>'+dup+'</div><div class="body"><p class="card-title">'+escapeHtml(r.t)+'</p><p class="desc">'+escapeHtml(r.d)+'</p><div class="meta"><span class="type-tag">'+typeLabel+'</span><span>'+escapeHtml(r.a?'@'+r.a:'')+'</span><span class="sc">'+escapeHtml(r.sc)+'</span></div><a class="link" href="'+escapeHtml(r.u)+'" target="_blank" rel="noopener noreferrer">▶ Open on Instagram</a></div></article>';
 }
 
 function renderMore(){
@@ -523,13 +553,19 @@ function renderGroups(){
   filtered.forEach(r=>{if(!groups[r.sha]){groups[r.sha]=[];order.push(r.sha);}groups[r.sha].push(r);});
   document.getElementById('groupwrap').innerHTML=order.map(sha=>{
     const members=groups[sha]; const r=members[0];
-    return '<section class="group"><div class="group-head">'+(imgSrc(r)?'<img src="'+imgSrc(r)+'" alt="shared cover">':'<div class="noimg-mini"></div>')+'<div><div class="ghtext">Same cover</div><div class="ghsub">'+members.length+' Reels share this exact cover image</div></div></div><div class="group-grid">'+members.map(cardHtml).join('')+'</div></section>';
+    return '<section class="group"><div class="group-head">'+(imgSrc(r)?'<img src="'+imgSrc(r)+'" alt="shared preview">':'<div class="noimg-mini"></div>')+'<div><div class="ghtext">Same preview</div><div class="ghsub">'+members.length+' library items share this exact image</div></div></div><div class="group-grid">'+members.map(cardHtml).join('')+'</div></section>';
   }).join('');
 }
 
 function updateChrome(){
-  const total=document.getElementById('totalReelsCount'); if(total) total.textContent=REC.length.toLocaleString()+' Reels';
-  const rc=document.getElementById('resultCount'); if(rc) rc.textContent=filtered.length.toLocaleString()+' Reel'+(filtered.length===1?'':'s');
+  const total=document.getElementById('totalMediaCount');
+  if(total){
+    if(state.media==='reels') total.textContent=REEL_REC.length.toLocaleString()+' Reels';
+    else if(state.media==='posts') total.textContent=POST_REC.length.toLocaleString()+' Posts';
+    else total.textContent=(REEL_REC.length+POST_REC.length).toLocaleString()+' Items';
+  }
+  const rc=document.getElementById('resultCount');
+  if(rc) rc.textContent=filtered.length.toLocaleString()+' item'+(filtered.length===1?'':'s');
   document.getElementById('empty').style.display=filtered.length?'none':'block';
   const cat=document.getElementById('category'); if(cat && cat.value!==state.cat) cat.value=state.cat;
   const chips=[];
@@ -539,16 +575,38 @@ function updateChrome(){
   document.getElementById('activeChips').innerHTML=chips.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join('');
 }
 
+function setMedia(media){
+  if(!['all','reels','posts'].includes(media)) return;
+  state.media=media;
+  REC=recordsForMedia(media);
+  document.querySelectorAll('.media-tab').forEach(btn=>{
+    const active=btn.dataset.media===media;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',active?'true':'false');
+  });
+  applyFilters();
+}
+
 async function boot(){
   try{
-    const [r,m]=await Promise.all([fetch('data/reels.json',{cache:'no-store'}),fetch('data/meta.json',{cache:'no-store'})]);
-    if(!r.ok||!m.ok) throw new Error('Library data could not be loaded');
-    REC=await r.json(); META=await m.json();
-    if(!Array.isArray(REC)||!REC.length) throw new Error('Library dataset is empty');
-    applyFilters();
+    const [r,p,m]=await Promise.all([
+      fetch('data/reels.json',{cache:'no-store'}),
+      fetch('data/posts.json',{cache:'no-store'}),
+      fetch('data/meta.json',{cache:'no-store'})
+    ]);
+    if(!r.ok||!p.ok||!m.ok) throw new Error('One or more library data files could not be loaded');
+    const [reels,posts,meta]=await Promise.all([r.json(),p.json(),m.json()]);
+    if(!Array.isArray(reels)||!Array.isArray(posts)) throw new Error('Library data must be JSON arrays');
+    REEL_REC=reels.map(record=>({...record,type:'reel'}));
+    POST_REC=posts.map(record=>({...record,type:'post'}));
+    ALL_REC=[...REEL_REC,...POST_REC];
+    META=meta||{};
+    setMedia('all');
   }catch(err){
     console.error(err);
-    document.getElementById('grid').innerHTML='<div style="padding:40px;color:#f87171">Unable to load the Reel library. Please refresh the page.</div>';
+    document.getElementById('grid').innerHTML='<div style="padding:40px;color:#f87171">Unable to load the Instagram library. Please refresh the page.</div>';
+    document.getElementById('totalMediaCount').textContent='Library unavailable';
+    document.getElementById('loadmore-wrap').style.display='none';
   }
 }
 
@@ -557,11 +615,12 @@ document.getElementById('sort').addEventListener('change',e=>{state.sort=e.targe
 document.getElementById('category').addEventListener('change',e=>{state.cat=e.target.value;applyFilters();});
 document.getElementById('loadmore').addEventListener('click',renderMore);
 document.getElementById('clearFilters').addEventListener('click',()=>{
-  state={cover:'all',cat:'All',q:'',sort:'default'};
+  state.cover='all';state.cat='All';state.q='';state.sort='default';
   document.getElementById('search').value='';
   document.getElementById('sort').value='default';
   applyFilters();
 });
+document.querySelectorAll('.media-tab').forEach(btn=>btn.addEventListener('click',()=>setMedia(btn.dataset.media)));
 document.querySelectorAll('.pill').forEach(btn=>btn.addEventListener('click',()=>{state.cover=btn.dataset.cover;applyFilters();}));
 
 /* Header state machine: top=full, down=hidden, up=compact, returnToTop=visible lock. */

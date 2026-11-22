@@ -5,8 +5,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 recs = json.loads((ROOT / "data" / "reels.json").read_text(encoding="utf-8"))
-assert len(recs) == 3646
-assert len({r["sc"] for r in recs}) == 3646
+meta = json.loads((ROOT / "data" / "meta.json").read_text(encoding="utf-8"))
+assert len(recs) == meta["reel_count"]
+assert len({r["sc"] for r in recs}) == meta["reel_count"]
 assert all(re.fullmatch(r"[A-Za-z0-9_-]+", r["sc"]) for r in recs)
 assert all(r["u"] == f"https://www.instagram.com/reel/{r['sc']}/" for r in recs)
 assert all("/p/" not in r["u"] for r in recs)

@@ -1,10 +1,10 @@
-name: Instagram Reel Auto Sync
+name: TROY Instagram Library Auto Sync
 
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: "Optional Instagram Reel URL(s), one per line"
+        description: "Optional Instagram Reel or Post URL(s), one per line"
         required: false
         type: string
   issues:
@@ -15,7 +15,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: instagram-reel-sync
+  group: troy-instagram-library-sync
   cancel-in-progress: false
 
 jobs:
@@ -55,13 +55,13 @@ jobs:
           printf '%s\n' "${ISSUE_BODY:-}" >> /tmp/submission.txt
 
           grep -Eoi \
-            'https?://(www\.)?instagram\.com/reel/[A-Za-z0-9_-]+/?([?#][^[:space:]]*)?' \
+            'https?://(www\.)?instagram\.com/(reel|p)/[A-Za-z0-9_-]+/?([?#][^[:space:]]*)?' \
             /tmp/submission.txt \
             | sed 's/[[:space:]]*$//' \
             | sort -u \
-            > /tmp/reel_urls.txt || true
+            > /tmp/media_urls.txt || true
 
-          echo "Found $(wc -l < /tmp/reel_urls.txt) Reel URL(s)."
+          echo "Found $(wc -l < /tmp/media_urls.txt) Instagram media URL(s)."
 
       - name: Process direct submission
         if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
@@ -76,51 +76,58 @@ jobs:
           while IFS= read -r url; do
             [ -z "$url" ] && continue
 
-            echo "Processing: $url"
+            if [[ "$url" =~ instagram\.com/p/ ]]; then
+              processor="automation/sync_posts.py"
+              media_type="post"
+            else
+              processor="automation/sync_reels.py"
+              media_type="reel"
+            fi
 
-            if output="$(python automation/sync_reels.py "$url" 2>&1)"; then
-              python - "$output" >> /tmp/ingestion_results.jsonl <<'PY'
+            echo "Processing $media_type: $url"
+
+            if output="$(python "$processor" "$url" 2>&1)"; then
+              python - "$output" "$media_type" >> /tmp/ingestion_results.jsonl <<'PY'
           import json
           import sys
 
           raw = sys.argv[1].strip()
+          media_type = sys.argv[2]
 
           try:
               parsed = json.loads(raw)
-
               if isinstance(parsed, list) and parsed:
                   result = parsed[0]
               elif isinstance(parsed, dict):
                   result = parsed
               else:
-                  result = {
-                      "status": "error",
-                      "reason": raw[-1000:],
-                  }
+                  raise ValueError("Processor returned an unexpected result")
+              if not isinstance(result, dict):
+                  raise ValueError("Processor result is not an object")
+              result.setdefault("type", media_type)
           except Exception:
               result = {
                   "status": "error",
+                  "type": media_type,
                   "reason": raw[-1000:],
               }
 
           print(json.dumps(result, ensure_ascii=False))
           PY
             else
-              python - "$output" >> /tmp/ingestion_results.jsonl <<'PY'
+              python - "$output" "$media_type" >> /tmp/ingestion_results.jsonl <<'PY'
           import json
           import sys
 
           print(json.dumps({
               "status": "error",
+              "type": sys.argv[2],
               "reason": sys.argv[1][-1000:]
           }, ensure_ascii=False))
           PY
             fi
 
-          done < /tmp/reel_urls.txt
-
-          echo "Ingestion results:"
-          cat /tmp/ingestion_results.jsonl
+          done < /tmp/media_urls.txt
 
       - name: Full integrity validation
         run: python automation/validate_library.py
@@ -137,14 +144,15 @@ jobs:
               index.html \
               data \
               reel_covers \
+              post_covers \
               automation/ingestion_log.jsonl \
               automation/telegram_messages.jsonl \
               automation/telegram_offset.json
 
             git diff --cached --check
 
-            git commit -m "Auto-add Instagram Reel(s)"
-            git push origin HEAD:main
+            git commit -m "Auto-add Instagram media item(s)"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
 
             echo "CHANGES_PUSHED=true" >> "$GITHUB_ENV"
           else
@@ -211,37 +219,38 @@ jobs:
 
           for result in results:
               status = result.get("status")
+              item_type = "Post" if result.get("type") == "post" else "Reel"
+              plural = "Posts" if item_type == "Post" else "Reels"
 
               if status == "added":
                   parts.append(
-                      "✅ Reel added to TROY\n"
-                      f"Reel: {result.get('shortcode', 'Unknown')}\n"
+                      f"✅ {item_type} added to TROY\n"
+                      f"{item_type}: {result.get('shortcode', 'Unknown')}\n"
                       f"Category: {result.get('category', 'Unknown')}\n"
-                      f"Library: {result.get('total', 'Unknown')} Reels"
+                      f"Library: {result.get('total', 'Unknown')} {plural}"
                   )
 
               elif status == "duplicate":
                   parts.append(
-                      "ℹ️ Already in TROY\n"
-                      f"Reel: {result.get('shortcode', 'Unknown')}\n"
-                      f"Library: {result.get('total', 'Unknown')} Reels"
+                      f"ℹ️ Already in TROY\n"
+                      f"{item_type}: {result.get('shortcode', 'Unknown')}\n"
+                      f"Library: {result.get('total', 'Unknown')} {plural}"
                   )
 
               elif status == "ignored":
                   parts.append(
-                      "⚠️ Reel ignored\n"
-                      f"{result.get('reason', 'Invalid Reel URL')}"
+                      f"⚠️ {item_type} ignored\n"
+                      f"{result.get('reason', f'Invalid Instagram {item_type} URL')}"
                   )
 
               else:
                   parts.append(
-                      "❌ Reel processing failed\n"
+                      f"❌ {item_type} processing failed\n"
                       f"{result.get('reason', 'Unknown error')}"
                   )
 
           if not parts:
-              parts.append("⚠️ TROY: No Reel URL was processed.")
-
+              parts.append("⚠️ TROY: No Instagram media URL was processed.")
           message = "\n\n".join(parts)
 
           api_url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -257,7 +266,7 @@ jobs:
               data=payload,
               method="POST",
               headers={
-                  "User-Agent": "TROY-Reel-Sync",
+                  "User-Agent": "TROY-Instagram-Library-Sync",
                   "Content-Type": "application/x-www-form-urlencoded",
               },
           )
@@ -278,6 +287,6 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh issue comment "$ISSUE_NUMBER" \
-            --body "✅ Reel ingestion workflow completed."
+            --body "✅ Instagram library ingestion workflow completed."
 
           gh issue close "$ISSUE_NUMBER"
