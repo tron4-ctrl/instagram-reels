@@ -280,6 +280,36 @@ jobs:
           print("Telegram confirmation sent successfully.")
           PY
 
+      - name: Fail the run if any Instagram item failed
+        if: always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'issues')
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          results_path = Path("/tmp/ingestion_results.jsonl")
+          failures = []
+          if results_path.exists():
+              for line in results_path.read_text(encoding="utf-8").splitlines():
+                  if not line.strip():
+                      continue
+                  try:
+                      item = json.loads(line)
+                  except json.JSONDecodeError:
+                      failures.append(line[-1000:])
+                      continue
+                  if item.get("status") == "error":
+                      failures.append(item.get("reason", "Unknown processing error"))
+
+          if failures:
+              print("One or more Instagram items failed:")
+              for reason in failures:
+                  print(f"- {reason}")
+              raise SystemExit(1)
+
+          print("No Instagram item-level processing errors detected.")
+          PY
+
       - name: Close processed Issue
         if: github.event_name == 'issues' && success()
         env:

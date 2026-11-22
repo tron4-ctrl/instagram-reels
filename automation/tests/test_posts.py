@@ -115,6 +115,8 @@ def test_gallery_metadata_merges_post_and_first_media_event(monkeypatch):
     assert item["sidecar_shortcode"] == "ABC_123"
     assert "--range" in captured["command"]
     assert captured["command"][captured["command"].index("--range") + 1] == "1"
+    assert "--option" in captured["command"]
+    assert captured["command"][captured["command"].index("--option") + 1] ==         "extractor.instagram.api=graphql"
     assert "--cookies" in captured["command"]
     assert captured["kwargs"]["timeout"] == 90
 

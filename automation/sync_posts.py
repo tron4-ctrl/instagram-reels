@@ -139,6 +139,11 @@ def gallery_metadata(url: str) -> dict:
         sys.executable,
         "-m",
         "gallery_dl",
+        # Instagram's REST media endpoint can return 401 for public posts
+        # when accessed without a logged-in session. GraphQL is a separate
+        # supported gallery-dl API mode and is the no-cookie path we test first.
+        "--option",
+        "extractor.instagram.api=graphql",
         "--range",
         "1",
         "--dump-json",
